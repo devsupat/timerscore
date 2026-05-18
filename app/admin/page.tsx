@@ -46,6 +46,35 @@ export default function AdminPage() {
   const dbKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? '****************' : ''
   const isConnected = Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL)
 
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [checkingAuth, setCheckingAuth] = useState(true)
+  const [pinInput, setPinInput] = useState('')
+  const [pinError, setPinError] = useState(false)
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const storedPin = localStorage.getItem('admin_pin')
+      if (storedPin === '2026') {
+        setIsAuthenticated(true)
+      }
+      setCheckingAuth(false)
+    }
+  }, [])
+
+  const handlePinSubmit = (pin: string) => {
+    if (pin === '2026') {
+      localStorage.setItem('admin_pin', '2026')
+      setIsAuthenticated(true)
+      setPinError(false)
+      window.location.reload() // Reload to ensure Supabase client gets the new pin from localStorage
+    } else {
+      setPinError(true)
+      setPinInput('')
+      // clear error after 1.5s
+      setTimeout(() => setPinError(false), 1500)
+    }
+  }
+
   const [teams, setTeams] = useState<Team[]>([])
   const [timerCfg, setTimerCfg] = useState<TimerConfig | null>(null)
   const [currentSession, setCurrentSession] = useState(1)
@@ -322,6 +351,115 @@ export default function AdminPage() {
 
   const sessionTeams = teams.filter(t => parseTeamInfo(t.name).session === currentSession)
 
+  if (checkingAuth) {
+    return (
+      <div className="bg-slate-950 min-h-screen flex items-center justify-center text-white">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-amber-400 border-r-2"></div>
+      </div>
+    )
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="bg-slate-950 min-h-screen flex flex-col items-center justify-center p-4 antialiased font-space selection:bg-amber-400 selection:text-slate-900">
+        <div className="w-full max-w-md bg-slate-900/50 backdrop-blur-md border border-slate-800 rounded-3xl p-8 shadow-2xl text-center space-y-8">
+          <div className="flex flex-col items-center gap-3">
+            <img src="https://i.imgur.com/Fz8oi5y.png" alt="Logo Kota Tangerang" className="h-16 w-auto object-contain filter drop-shadow-[0_4px_8px_rgba(251,191,36,0.2)]" />
+            <div className="space-y-1">
+              <h1 className="font-bebas text-3xl font-black text-amber-400 tracking-wider">LIGA BINTANG JUARA</h1>
+              <p className="text-[10px] text-slate-400 font-bold tracking-widest uppercase">KOTA TANGERANG • ADMIN CONSOLE</p>
+            </div>
+          </div>
+
+          <div className="h-px bg-gradient-to-r from-transparent via-slate-800 to-transparent"></div>
+
+          <div className="space-y-4">
+            <span className="text-xs font-black uppercase text-slate-400 tracking-widest block">MASUKKAN PIN KEAMANAN</span>
+            
+            {/* PIN Dots display */}
+            <div className="flex justify-center gap-4 py-2">
+              {[0, 1, 2, 3].map((index) => (
+                <div
+                  key={index}
+                  className={`w-4 h-4 rounded-full transition-all duration-200 ${
+                    pinError
+                      ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)] scale-110'
+                      : index < pinInput.length
+                      ? 'bg-amber-400 shadow-[0_0_12px_rgba(251,191,36,0.6)] scale-125'
+                      : 'bg-slate-800'
+                  }`}
+                />
+              ))}
+            </div>
+            
+            {pinError && (
+              <span className="text-xs font-black text-red-400 tracking-wider animate-bounce block">
+                PIN SALAH! SILAKAN COBA LAGI
+              </span>
+            )}
+          </div>
+
+          {/* Large, finger-friendly keypad */}
+          <div className="grid grid-cols-3 gap-3 max-w-[280px] mx-auto">
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+              <button
+                key={num}
+                onClick={() => {
+                  if (pinInput.length < 4) {
+                    const next = pinInput + num
+                    setPinInput(next)
+                    if (next.length === 4) {
+                      setTimeout(() => handlePinSubmit(next), 150)
+                    }
+                  }
+                }}
+                className="w-16 h-16 rounded-full bg-slate-800/80 hover:bg-slate-700/80 active:bg-amber-400 active:text-slate-900 border border-slate-700/50 text-xl font-black text-white hover:scale-105 hover:border-slate-600 transition-all flex items-center justify-center shadow-lg"
+              >
+                {num}
+              </button>
+            ))}
+            
+            {/* Clear Button */}
+            <button
+              onClick={() => setPinInput('')}
+              className="w-16 h-16 rounded-full bg-slate-900 hover:bg-slate-800 active:bg-red-500/20 active:text-red-400 border border-slate-800 hover:border-slate-700 text-xs font-black text-slate-400 transition-all flex items-center justify-center shadow-lg"
+            >
+              HAPUS
+            </button>
+            
+            {/* 0 Button */}
+            <button
+              onClick={() => {
+                if (pinInput.length < 4) {
+                  const next = pinInput + '0'
+                  setPinInput(next)
+                  if (next.length === 4) {
+                    setTimeout(() => handlePinSubmit(next), 150)
+                  }
+                }
+              }}
+              className="w-16 h-16 rounded-full bg-slate-800/80 hover:bg-slate-700/80 active:bg-amber-400 active:text-slate-900 border border-slate-700/50 text-xl font-black text-white hover:scale-105 hover:border-slate-600 transition-all flex items-center justify-center shadow-lg"
+            >
+              0
+            </button>
+
+            {/* Keluar/Kembali Button */}
+            <a
+              href="/livescore"
+              className="w-16 h-16 rounded-full bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-[10px] font-black text-slate-400 transition-all flex items-center justify-center shadow-lg uppercase"
+            >
+              Batal
+            </a>
+          </div>
+
+          <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+            Sistem Keamanan Terenkripsi Supabase
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="bg-surface-bg text-on-surface min-h-screen font-hanken antialiased pb-24">
       {/* Modal Dialog */}
@@ -372,18 +510,32 @@ export default function AdminPage() {
             <a className="text-slate-300 hover:text-amber-400 transition-colors py-2.5" href="/livescore">Live Score</a>
             <a className="text-amber-400 border-b-2 border-amber-400 py-2.5" href="/admin">Admin Panel</a>
           </nav>
-          <div>
-            {isConnected ? (
-              <span className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-4 py-1.5 rounded-full text-xs font-black font-space shadow-sm">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                LIVE SYNC
-              </span>
-            ) : (
-              <span className="flex items-center gap-2 bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-1.5 rounded-full text-xs font-black font-space shadow-sm">
-                <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
-                OFFLINE
-              </span>
-            )}
+          <div className="flex items-center gap-4">
+            <div>
+              {isConnected ? (
+                <span className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-4 py-1.5 rounded-full text-xs font-black font-space shadow-sm">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  LIVE SYNC
+                </span>
+              ) : (
+                <span className="flex items-center gap-2 bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-1.5 rounded-full text-xs font-black font-space shadow-sm">
+                  <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                  OFFLINE
+                </span>
+              )}
+            </div>
+            <button
+              onClick={() => {
+                localStorage.removeItem('admin_pin');
+                window.location.reload();
+              }}
+              title="Kunci / Keluar Konsol"
+              className="flex items-center justify-center p-2 rounded-lg bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 text-red-400 transition-all hover:scale-105"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+              </svg>
+            </button>
           </div>
         </div>
       </header>
