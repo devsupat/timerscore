@@ -8,6 +8,7 @@ type Team = {
   id: number
   name: string
   score: number
+  tiebreaker_score: number
 }
 
 type TimerConfig = {
@@ -33,6 +34,31 @@ function formatTime(seconds: number) {
   return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
 }
 
+function computeFinalTop7(teams: Team[]) {
+  const regularTeams = teams.filter(t => parseTeamInfo(t.name).session <= 4)
+  
+  const sorted = [...regularTeams].sort((a, b) =>
+    b.score !== a.score ? b.score - a.score :
+    b.tiebreaker_score !== a.tiebreaker_score ? b.tiebreaker_score - a.tiebreaker_score :
+    a.id - b.id
+  )
+  
+  const rank7Score = sorted[6]?.score
+  const atCutoff = sorted.filter(t => t.score === rank7Score)
+  const needsCutoffTB = atCutoff.length > 1 && sorted.indexOf(atCutoff[0]) < 7
+  
+  const top7 = sorted.slice(0, 7)
+  
+  const scoreMap = new Map<number, Team[]>()
+  for (const t of top7) {
+    if (!scoreMap.has(t.score)) scoreMap.set(t.score, [])
+    scoreMap.get(t.score)!.push(t)
+  }
+  const internalTies = [...scoreMap.values()].filter(g => g.length > 1)
+  
+  return { top7, needsCutoffTB, internalTies, cutoffCandidates: atCutoff }
+}
+
 export default function LiveScorePage() {
   const [teams, setTeams] = useState<Team[]>([])
   const [eventTitle, setEventTitle] = useState('LIVE SCORE')
@@ -52,6 +78,7 @@ export default function LiveScorePage() {
       .from('teams')
       .select('*')
       .order('score', { ascending: false })
+      .order('tiebreaker_score', { ascending: false })
       .order('id', { ascending: true })
       .then(({ data }) => { if (data) setTeams(data) })
   }, [])
@@ -82,8 +109,11 @@ export default function LiveScorePage() {
   }, [loadTimer])
 
   useEffect(() => {
-    fetchTeams()
-    fetchTimer()
+    const initialLoad = setTimeout(() => {
+      fetchTeams()
+      fetchTimer()
+    }, 0)
+
     const teamChannel = supabase.channel('livescore-teams')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'teams' }, fetchTeams)
       .subscribe()
@@ -91,6 +121,7 @@ export default function LiveScorePage() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'timer_config' }, fetchTimer)
       .subscribe()
     return () => {
+      clearTimeout(initialLoad)
       supabase.removeChannel(teamChannel)
       supabase.removeChannel(timerChannel)
     }
@@ -127,21 +158,21 @@ export default function LiveScorePage() {
 
   return (
     <div className="bg-surface-bg text-on-surface min-h-screen font-hanken antialiased">
-      <header className="sticky top-0 z-30 bg-slate-900/95 backdrop-blur-md text-white border-b border-slate-800 px-6 h-20 flex justify-between items-center shadow-lg">
-        <div className="flex items-center gap-4">
+      <header className="sticky top-0 z-30 bg-[#145224]/95 backdrop-blur-md text-white border-b border-[#0F3D1E] px-6 h-20 flex justify-between items-center shadow-lg">
+        <div className="flex items-center gap-4 bg-gradient-to-r from-[#0F3D1E] to-[#145224] px-4 py-1.5 rounded-xl border border-[#1A6B2F]/20">
           <img src="https://i.imgur.com/Fz8oi5y.png" alt="Logo Kota Tangerang" className="h-12 w-auto object-contain filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)]" />
-          <div className="h-8 w-px bg-slate-800"></div>
+          <div className="h-8 w-px bg-[#1A6B2F]/30"></div>
           <div>
-            <span className="font-bebas text-2xl font-black text-amber-400 tracking-wider uppercase block leading-none pt-0.5">LIGA BINTANG JUARA</span>
-            <span className="text-[10px] text-slate-400 font-space font-black tracking-widest uppercase block mt-1">KOTA TANGERANG • SPECTATOR PLATFORM</span>
+            <span className="font-bebas text-2xl font-black text-[#F5C518] tracking-wider uppercase block leading-none pt-0.5">LIGA BINTANG JUARA</span>
+            <span className="text-[10px] text-slate-400 font-space font-black tracking-widest uppercase block mt-1">KOTA TANGERANG • PLATFORM PENONTON</span>
           </div>
         </div>
         
         <div className="flex items-center gap-6">
           <nav className="flex items-center gap-6 h-full font-space text-xs font-bold uppercase tracking-wider">
-            <a className="text-slate-300 hover:text-amber-400 transition-colors py-2.5" href="/display">Display</a>
-            <a className="text-amber-400 border-b-2 border-amber-400 py-2.5" href="/livescore">Live Score</a>
-            <a className="text-slate-300 hover:text-amber-400 transition-colors py-2.5" href="/admin">Admin Panel</a>
+            <a className="text-slate-300 hover:text-[#F5C518] transition-colors py-2.5" href="/display">Layar Utama</a>
+            <a className="text-[#F5C518] border-b-2 border-[#F5C518] py-2.5" href="/livescore">Skor Langsung</a>
+            <a className="text-slate-300 hover:text-[#F5C518] transition-colors py-2.5" href="/admin">Panel Admin</a>
           </nav>
         </div>
       </header>
@@ -149,7 +180,7 @@ export default function LiveScorePage() {
 
         {/* Header */}
         <div className="bg-primary-container text-white rounded-2xl p-8 text-center shadow-lg space-y-2">
-          <span className="font-space text-xs font-bold tracking-widest uppercase text-white/60">Live Score</span>
+          <span className="font-space text-xs font-bold tracking-widest uppercase text-white/60">Skor Langsung</span>
           <h1 className="font-bebas text-4xl md:text-5xl tracking-wide leading-tight">{eventTitle}</h1>
           {eventSubtitle && <p className="text-sm text-white/70 font-space">{eventSubtitle}</p>}
 
@@ -242,41 +273,48 @@ export default function LiveScorePage() {
           )}
         </div>
 
-        {/* All sessions summary (collapsed view) */}
-        {teams.length > sessionTeams.length && (
-          <div className="bg-white border border-outline-var rounded-2xl shadow-md overflow-hidden">
-            <div className="px-6 py-4 border-b border-outline-var">
-              <h2 className="font-bebas text-xl text-primary-main tracking-wide">Rekap Semua Sesi</h2>
-            </div>
-            <div className="divide-y divide-outline-var/40">
-              {Array.from({ length: totalSessions }, (_, i) => i + 1).map(sesi => {
-                const sesiTeams = teams.filter(t => parseTeamInfo(t.name).session === sesi)
-                if (sesiTeams.length === 0) return null
-                const isActive = sesi === currentSession
-                return (
-                  <div key={sesi} className={`px-6 py-3 ${isActive ? 'bg-primary-container/5' : ''}`}>
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className={`font-space text-xs font-black px-2 py-0.5 rounded-full uppercase ${isActive ? 'bg-primary-container text-white' : 'bg-surface-container text-on-surface-variant border border-outline-var'}`}>
-                        Sesi {sesi}{isActive ? ' ● Aktif' : ''}
-                      </span>
+        {/* All sessions summary (Top 7) */}
+        {(() => {
+          const { top7, needsCutoffTB, internalTies } = computeFinalTop7(teams)
+          if (top7.length === 0) return null
+          
+          return (
+            <div className="bg-white border border-outline-var rounded-2xl shadow-md overflow-hidden">
+              <div className="px-6 py-4 border-b border-outline-var flex items-center justify-between">
+                <h2 className="font-bebas text-xl text-primary-main tracking-wide">Rekap Global — Top 7 Sementara</h2>
+                {needsCutoffTB && (
+                  <span className="font-space text-xs font-bold text-red-600 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full uppercase tracking-wider animate-pulse">
+                    Tiebreaker Cutoff Required
+                  </span>
+                )}
+              </div>
+              <div className="divide-y divide-outline-var/40">
+                {top7.map((team, idx) => {
+                  const parsed = parseTeamInfo(team.name)
+                  const isTied = internalTies.some(group => group.some(t => t.id === team.id)) || (needsCutoffTB && team.score === top7[6].score)
+                  
+                  return (
+                    <div key={team.id} className="px-6 py-3 flex items-center justify-between text-sm">
+                      <div className="flex items-center gap-3">
+                        <span className="font-space font-bold w-6 h-6 flex items-center justify-center bg-surface-container-low rounded-full text-primary-main border border-outline-var">
+                          {idx + 1}
+                        </span>
+                        <div className="flex flex-col">
+                          <span className="font-space text-on-surface-variant font-medium">{parsed.name} (Sesi {parsed.session})</span>
+                          {isTied && <span className="text-[10px] text-amber-600 font-bold uppercase tracking-wider">Tied</span>}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <span className="font-space font-bold text-primary-main text-lg">{team.score} pts</span>
+                        {team.tiebreaker_score > 0 && <span className="block font-space text-[10px] text-red-500 font-bold">TB: {team.tiebreaker_score}</span>}
+                      </div>
                     </div>
-                    <div className="space-y-1">
-                      {sesiTeams.slice(0, 3).map((team, idx) => {
-                        const parsed = parseTeamInfo(team.name)
-                        return (
-                          <div key={team.id} className="flex items-center justify-between text-sm">
-                            <span className="font-space text-on-surface-variant font-medium">{idx + 1}. {parsed.name}</span>
-                            <span className="font-space font-bold text-primary-main">{team.score} pts</span>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  </div>
-                )
-              })}
+                  )
+                })}
+              </div>
             </div>
-          </div>
-        )}
+          )
+        })()}
 
         <p className="text-center text-xs text-on-surface-variant font-space pb-4">
           Data diperbarui secara real-time &bull; <a href="/display" className="underline hover:text-primary-main">Display Screen</a>

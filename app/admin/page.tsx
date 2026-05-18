@@ -8,6 +8,7 @@ type Team = {
   id: number
   name: string
   score: number
+  tiebreaker_score: number
   created_at?: string
 }
 
@@ -54,10 +55,12 @@ export default function AdminPage() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const storedPin = localStorage.getItem('admin_pin')
-      if (storedPin === '2026') {
-        setIsAuthenticated(true)
-      }
-      setCheckingAuth(false)
+      setTimeout(() => {
+        if (storedPin === '2026') {
+          setIsAuthenticated(true)
+        }
+        setCheckingAuth(false)
+      }, 0)
     }
   }, [])
 
@@ -83,16 +86,22 @@ export default function AdminPage() {
   const [newNoUrut, setNewNoUrut] = useState('')
   const [newSessionOverride, setNewSessionOverride] = useState<number | null>(null)
 
-  // Derive suggested session — first session with fewer than 3 teams
+  // Sesi tertinggi yang ada di data (minimal TOTAL_SESSIONS)
+  const maxSession = useMemo(() => {
+    if (teams.length === 0) return TOTAL_SESSIONS
+    return Math.max(TOTAL_SESSIONS, ...teams.map(t => parseTeamInfo(t.name).session))
+  }, [teams])
+
+  // Sesi default untuk form tambah peserta — sesi pertama yang belum penuh
   const newSession = useMemo(() => {
     if (newSessionOverride !== null) return newSessionOverride
-    for (let s = 1; s <= TOTAL_SESSIONS; s++) {
+    for (let s = 1; s <= maxSession; s++) {
       const count = teams.filter(t => parseTeamInfo(t.name).session === s).length
       if (count < 3) return s
     }
-    return TOTAL_SESSIONS
-  }, [teams, newSessionOverride])
-  const [scoreStep, setScoreStep] = useState(50)
+    return maxSession
+  }, [teams, newSessionOverride, maxSession])
+  const [scoreStep, setScoreStep] = useState(100)
   const [eventTitle, setEventTitle] = useState('SELEKSI LIGA BINTANG JUARA')
   const [eventSubtitle, setEventSubtitle] = useState('Tingkat Gugus Kecamatan Tangerang • Selasa, 12 Mei 2025')
 
@@ -111,6 +120,7 @@ export default function AdminPage() {
       .from('teams')
       .select('*')
       .order('score', { ascending: false })
+      .order('tiebreaker_score', { ascending: false })
       .order('id', { ascending: true })
     if (error) throw error
     return data ?? []
@@ -216,6 +226,32 @@ export default function AdminPage() {
     })
   }
 
+  const handleAddNewSession = () => {
+    const next = maxSession + 1
+    const babakLabel = next <= TOTAL_SESSIONS ? `Babak ${next}` : `Babak Lanjutan ${next - TOTAL_SESSIONS}`
+    setConfirmDialog({
+      isOpen: true,
+      title: `Tambah ${babakLabel}`,
+      message: `Ini akan menambahkan ${babakLabel} untuk peserta yang akan diseleksi lebih lanjut. Timer akan direset. Tambahkan peserta secara manual melalui form "Kelola Peserta". Lanjutkan?`,
+      confirmText: `Ya, Tambah ${babakLabel}`,
+      isDestructive: false,
+      onConfirm: async () => {
+        const totalSecs = minutes * 60 + seconds
+        setCurrentSession(next)
+        setTimeLeft(totalSecs)
+        setIsTimerRunning(false)
+        if (timerCfg) {
+          const label = buildLabel(eventTitle, eventSubtitle, next)
+          await supabase
+            .from('timer_config')
+            .update({ started_at: null, is_running: false, duration_seconds: totalSecs, label })
+            .eq('id', timerCfg.id)
+        }
+        setNewSessionOverride(next)
+      }
+    })
+  }
+
   const updateEventDetails = async (title: string, subtitle: string) => {
     if (timerCfg) {
       await saveTimerToSupabase(
@@ -254,6 +290,16 @@ export default function AdminPage() {
     }
   }
 
+  const handleUpdateTBScore = async (id: number, delta: number) => {
+    try {
+      const { error } = await supabase.rpc('increment_tiebreaker_score', { team_id: id, delta })
+      if (error) throw error
+      fetchTeams()
+    } catch (err) {
+      console.error('Error updating tiebreaker score:', err)
+    }
+  }
+
   const handleDeleteTeam = (id: number, teamName: string) => {
     setConfirmDialog({
       isOpen: true,
@@ -277,7 +323,7 @@ export default function AdminPage() {
       confirmText: 'Ya, Reset Skor',
       isDestructive: true,
       onConfirm: async () => {
-        const { error } = await supabase.from('teams').update({ score: 0 }).neq('id', 0)
+        const { error } = await supabase.from('teams').update({ score: 0, tiebreaker_score: 0 }).neq('id', 0)
         if (error) console.error('Error resetting scores:', error)
         else fetchTeams()
       }
@@ -299,7 +345,8 @@ export default function AdminPage() {
             const num = (s - 1) * 3 + t
             defaults.push({
               name: `SDN CONTOH ${num} [No: ${String(num).padStart(3, '0')}] [S:${s}]`,
-              score: 0
+              score: 0,
+              tiebreaker_score: 0
             })
           }
         }
@@ -310,8 +357,12 @@ export default function AdminPage() {
   }
 
   useEffect(() => {
-    fetchTeams()
-    fetchTimer()
+    if (!isAuthenticated) return
+    const initialLoad = setTimeout(() => {
+      fetchTeams()
+      fetchTimer()
+    }, 0)
+
     const teamChannel = supabase.channel('admin-teams-realtime')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'teams' }, fetchTeams)
       .subscribe()
@@ -319,18 +370,21 @@ export default function AdminPage() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'timer_config' }, fetchTimer)
       .subscribe()
     return () => {
+      clearTimeout(initialLoad)
       supabase.removeChannel(teamChannel)
       supabase.removeChannel(timerChannel)
     }
-  }, [fetchTeams, fetchTimer])
+  }, [fetchTeams, fetchTimer, isAuthenticated])
 
   useEffect(() => {
+    if (!isAuthenticated) return
     const handleVisibility = () => { if (document.visibilityState === 'visible') fetchTimer() }
     window.addEventListener('visibilitychange', handleVisibility)
     return () => window.removeEventListener('visibilitychange', handleVisibility)
-  }, [fetchTimer])
+  }, [fetchTimer, isAuthenticated])
 
   useEffect(() => {
+    if (!isAuthenticated) return
     if (!isLive) {
       if (timerInterval.current) { clearInterval(timerInterval.current); timerInterval.current = null }
       return
@@ -341,7 +395,7 @@ export default function AdminPage() {
     return () => {
       if (timerInterval.current) { clearInterval(timerInterval.current); timerInterval.current = null }
     }
-  }, [isLive])
+  }, [isLive, isAuthenticated])
 
   const formatTime = (sec: number) => {
     const m = Math.floor(sec / 60)
@@ -353,25 +407,25 @@ export default function AdminPage() {
 
   if (checkingAuth) {
     return (
-      <div className="bg-slate-950 min-h-screen flex items-center justify-center text-white">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-amber-400 border-r-2"></div>
+      <div className="bg-[#0D2B16] min-h-screen flex items-center justify-center text-white">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-[#F5C518] border-r-2"></div>
       </div>
     )
   }
 
   if (!isAuthenticated) {
     return (
-      <div className="bg-slate-950 min-h-screen flex flex-col items-center justify-center p-4 antialiased font-space selection:bg-amber-400 selection:text-slate-900">
-        <div className="w-full max-w-md bg-slate-900/50 backdrop-blur-md border border-slate-800 rounded-3xl p-8 shadow-2xl text-center space-y-8">
+      <div className="bg-[#0D2B16] min-h-screen flex flex-col items-center justify-center p-4 antialiased font-space selection:bg-[#F5C518] selection:text-[#3B2000]">
+        <div className="w-full max-w-md bg-[#145224]/50 backdrop-blur-md border border-[#0F3D1E] rounded-3xl p-8 shadow-2xl text-center space-y-8">
           <div className="flex flex-col items-center gap-3">
-            <img src="https://i.imgur.com/Fz8oi5y.png" alt="Logo Kota Tangerang" className="h-16 w-auto object-contain filter drop-shadow-[0_4px_8px_rgba(251,191,36,0.2)]" />
+            <img src="https://i.imgur.com/Fz8oi5y.png" alt="Logo Kota Tangerang" className="h-16 w-auto object-contain filter drop-shadow-[0_4px_8px_rgba(245,197,24,0.2)]" />
             <div className="space-y-1">
-              <h1 className="font-bebas text-3xl font-black text-amber-400 tracking-wider">LIGA BINTANG JUARA</h1>
-              <p className="text-[10px] text-slate-400 font-bold tracking-widest uppercase">KOTA TANGERANG • ADMIN CONSOLE</p>
+              <h1 className="font-bebas text-3xl font-black text-[#F5C518] tracking-wider">LIGA BINTANG JUARA</h1>
+              <p className="text-[10px] text-slate-400 font-bold tracking-widest uppercase">KOTA TANGERANG • PANEL ADMIN</p>
             </div>
           </div>
 
-          <div className="h-px bg-gradient-to-r from-transparent via-slate-800 to-transparent"></div>
+          <div className="h-px bg-gradient-to-r from-transparent via-[#0F3D1E] to-transparent"></div>
 
           <div className="space-y-4">
             <span className="text-xs font-black uppercase text-slate-400 tracking-widest block">MASUKKAN PIN KEAMANAN</span>
@@ -385,8 +439,8 @@ export default function AdminPage() {
                     pinError
                       ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)] scale-110'
                       : index < pinInput.length
-                      ? 'bg-amber-400 shadow-[0_0_12px_rgba(251,191,36,0.6)] scale-125'
-                      : 'bg-slate-800'
+                      ? 'bg-[#F5C518] shadow-[0_0_12px_rgba(245,197,24,0.6)] scale-125'
+                      : 'bg-[#0F3D1E]'
                   }`}
                 />
               ))}
@@ -413,7 +467,7 @@ export default function AdminPage() {
                     }
                   }
                 }}
-                className="w-16 h-16 rounded-full bg-slate-800/80 hover:bg-slate-700/80 active:bg-amber-400 active:text-slate-900 border border-slate-700/50 text-xl font-black text-white hover:scale-105 hover:border-slate-600 transition-all flex items-center justify-center shadow-lg"
+                className="w-16 h-16 rounded-full bg-[#145224]/80 hover:bg-[#1A6B2F]/80 active:bg-[#F5C518] active:text-[#3B2000] border border-[#0F3D1E]/50 text-xl font-black text-white hover:scale-105 hover:border-[#1A6B2F] transition-all flex items-center justify-center shadow-lg"
               >
                 {num}
               </button>
@@ -422,7 +476,7 @@ export default function AdminPage() {
             {/* Clear Button */}
             <button
               onClick={() => setPinInput('')}
-              className="w-16 h-16 rounded-full bg-slate-900 hover:bg-slate-800 active:bg-red-500/20 active:text-red-400 border border-slate-800 hover:border-slate-700 text-xs font-black text-slate-400 transition-all flex items-center justify-center shadow-lg"
+              className="w-16 h-16 rounded-full bg-[#0D2B16] hover:bg-[#145224] active:bg-red-500/20 active:text-red-400 border border-[#0F3D1E] hover:border-[#1A6B2F] text-xs font-black text-slate-400 transition-all flex items-center justify-center shadow-lg"
             >
               HAPUS
             </button>
@@ -438,15 +492,15 @@ export default function AdminPage() {
                   }
                 }
               }}
-              className="w-16 h-16 rounded-full bg-slate-800/80 hover:bg-slate-700/80 active:bg-amber-400 active:text-slate-900 border border-slate-700/50 text-xl font-black text-white hover:scale-105 hover:border-slate-600 transition-all flex items-center justify-center shadow-lg"
-            >
+              className="w-16 h-16 rounded-full bg-[#145224]/80 hover:bg-[#1A6B2F]/80 active:bg-[#F5C518] active:text-[#3B2000] border border-[#0F3D1E]/50 text-xl font-black text-white hover:scale-105 hover:border-[#1A6B2F] transition-all flex items-center justify-center shadow-lg"
+              >
               0
             </button>
 
             {/* Keluar/Kembali Button */}
             <a
               href="/livescore"
-              className="w-16 h-16 rounded-full bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-[10px] font-black text-slate-400 transition-all flex items-center justify-center shadow-lg uppercase"
+              className="w-16 h-16 rounded-full bg-[#0D2B16] hover:bg-[#145224] border border-[#0F3D1E] hover:border-[#1A6B2F] text-[10px] font-black text-slate-400 transition-all flex items-center justify-center shadow-lg uppercase"
             >
               Batal
             </a>
@@ -494,33 +548,34 @@ export default function AdminPage() {
       )}
 
       {/* Header */}
-      <header className="sticky top-0 z-30 bg-slate-900/95 backdrop-blur-md text-white border-b border-slate-800 px-8 h-20 flex justify-between items-center shadow-lg w-full">
-        <div className="flex items-center gap-4">
+      <header className="sticky top-0 z-30 bg-[#145224]/95 backdrop-blur-md text-white border-b border-[#0F3D1E] px-8 h-20 flex justify-between items-center shadow-lg w-full">
+        <div className="flex items-center gap-4 bg-gradient-to-r from-[#0F3D1E] to-[#145224] px-4 py-1.5 rounded-xl border border-[#1A6B2F]/20">
           <img src="https://i.imgur.com/Fz8oi5y.png" alt="Logo Kota Tangerang" className="h-12 w-auto object-contain filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)]" />
-          <div className="h-8 w-px bg-slate-800"></div>
+          <div className="h-8 w-px bg-[#1A6B2F]/30"></div>
           <div>
-            <span className="font-bebas text-2xl font-black text-amber-400 tracking-wider uppercase block leading-none pt-0.5">LIGA BINTANG JUARA</span>
-            <span className="text-[10px] text-slate-400 font-space font-black tracking-widest uppercase block mt-1">KOTA TANGERANG • ADMIN CONSOLE</span>
+            <span className="font-bebas text-2xl font-black text-[#F5C518] tracking-wider uppercase block leading-none pt-0.5">LIGA BINTANG JUARA</span>
+            <span className="text-[10px] text-slate-400 font-space font-black tracking-widest uppercase block mt-1">KOTA TANGERANG • PANEL ADMIN</span>
           </div>
         </div>
         
         <div className="flex items-center gap-6">
           <nav className="flex items-center gap-6 h-full font-space text-xs font-bold uppercase tracking-wider">
-            <a className="text-slate-300 hover:text-amber-400 transition-colors py-2.5" href="/display">Display</a>
-            <a className="text-slate-300 hover:text-amber-400 transition-colors py-2.5" href="/livescore">Live Score</a>
-            <a className="text-amber-400 border-b-2 border-amber-400 py-2.5" href="/admin">Admin Panel</a>
+            <a className="text-slate-300 hover:text-[#F5C518] transition-colors py-2.5" href="/display">Layar Utama</a>
+            <a className="text-slate-300 hover:text-[#F5C518] transition-colors py-2.5" href="/livescore">Skor Langsung</a>
+            <a className="text-[#F5C518] border-b-2 border-[#F5C518] py-2.5" href="/admin">Panel Admin</a>
+            <a className="text-slate-300 hover:text-[#F5C518] transition-colors py-2.5" href="/admin/ai">Analisis Cerdas</a>
           </nav>
           <div className="flex items-center gap-4">
             <div>
-              {isConnected ? (
-                <span className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-4 py-1.5 rounded-full text-xs font-black font-space shadow-sm">
+            {isConnected ? (
+                <span className="flex items-center gap-2 bg-[#1A6B2F]/20 border border-[#1A6B2F]/40 text-[#F5C518] px-4 py-1.5 rounded-full text-xs font-black font-space shadow-sm">
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                  LIVE SYNC
+                  TERHUBUNG
                 </span>
               ) : (
                 <span className="flex items-center gap-2 bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-1.5 rounded-full text-xs font-black font-space shadow-sm">
                   <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
-                  OFFLINE
+                  TIDAK TERHUBUNG
                 </span>
               )}
             </div>
@@ -543,7 +598,7 @@ export default function AdminPage() {
       <main className="max-w-[1440px] mx-auto px-8 pt-8 space-y-8">
         {/* Event Config */}
         <section className="bg-white border border-outline-var p-6 rounded-xl shadow-sm space-y-4">
-          <h2 className="font-bebas text-2xl text-primary-main tracking-wide">Konfigurasi Judul Event</h2>
+          <h2 className="font-bebas text-2xl text-primary-main tracking-wide">Konfigurasi Judul Acara</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
               <label className="text-xs font-bold text-on-surface-variant uppercase font-space">Judul Utama</label>
@@ -567,73 +622,94 @@ export default function AdminPage() {
         </section>
 
         {/* Timer + Session Control */}
-        <section className="bg-primary-container border-none rounded-xl p-8 shadow-lg text-white space-y-6">
+        <section className="bg-primary-container border-none rounded-xl p-8 shadow-xl text-white space-y-6">
           {/* Session Switcher */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div>
-              <span className="font-space text-xs text-white/60 uppercase tracking-widest font-bold block mb-1">Sesi Aktif</span>
-              <span className="font-bebas text-3xl text-secondary-container tracking-wide">
-                SESI {currentSession} <span className="text-white/50 text-xl">dari {TOTAL_SESSIONS}</span>
-              </span>
+          <div className="flex flex-col lg:flex-row lg:items-center gap-6 justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-6 sm:gap-12 w-full lg:w-auto">
+              <div>
+                <span className="font-space text-xs text-white/60 uppercase tracking-widest font-bold block mb-1">
+                  {currentSession <= TOTAL_SESSIONS ? 'Babak Penyisihan' : 'Babak Lanjutan'}
+                </span>
+                <span className="font-bebas text-3xl text-secondary-container tracking-wide">
+                  {currentSession <= TOTAL_SESSIONS
+                    ? `SESI ${currentSession}`
+                    : `LANJUTAN ${currentSession - TOTAL_SESSIONS}`}
+                  <span className="text-white/50 text-xl font-normal tracking-wider ml-1.5">DARI {maxSession}</span>
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {Array.from({ length: maxSession }, (_, i) => i + 1).map(s => {
+                  const count = teams.filter(t => parseTeamInfo(t.name).session === s).length
+                  const isExtra = s > TOTAL_SESSIONS
+                  return (
+                    <button
+                      key={s}
+                      onClick={() => s !== currentSession && handleSwitchSession(s)}
+                      title={`${isExtra ? `Babak Lanjutan ${s - TOTAL_SESSIONS}` : `Sesi ${s}`} — ${count} peserta`}
+                      className={`w-14 h-14 rounded-xl font-space font-black text-sm transition-all flex flex-col items-center justify-center gap-0.5 ${
+                        s === currentSession
+                          ? 'bg-secondary-container text-on-secondary-container shadow-lg scale-105'
+                          : isExtra
+                          ? 'bg-amber-400/20 text-amber-200 hover:bg-amber-400/30 hover:text-white border border-amber-400/30'
+                          : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'
+                      }`}
+                    >
+                      <span className="text-base">{isExtra ? `+${s - TOTAL_SESSIONS}` : s}</span>
+                      <span className="text-[10px] opacity-70">{count}/3</span>
+                    </button>
+                  )
+                })}
+                <button
+                  onClick={handleAddNewSession}
+                  title="Tambah babak lanjutan"
+                  className="w-14 h-14 rounded-xl font-space font-black text-sm transition-all flex flex-col items-center justify-center bg-transparent text-white/40 hover:bg-white/5 hover:text-white border border-dashed border-white/20"
+                >
+                  <span className="text-base leading-none">+</span>
+                  <span className="text-[8px] leading-tight font-medium opacity-70 mt-0.5 text-center">tambah<br/>sesi</span>
+                </button>
+              </div>
             </div>
-            <div className="flex gap-2">
-              {Array.from({ length: TOTAL_SESSIONS }, (_, i) => i + 1).map(s => {
-                const count = teams.filter(t => parseTeamInfo(t.name).session === s).length
-                return (
-                  <button
-                    key={s}
-                    onClick={() => s !== currentSession && handleSwitchSession(s)}
-                    title={`Sesi ${s} — ${count} peserta`}
-                    className={`w-14 h-14 rounded-xl font-space font-black text-sm transition-all flex flex-col items-center justify-center gap-0.5 ${
-                      s === currentSession
-                        ? 'bg-secondary-container text-on-secondary-container shadow-lg scale-110'
-                        : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'
-                    }`}
-                  >
-                    <span className="text-base">{s}</span>
-                    <span className="text-[10px] opacity-70">{count}/3</span>
-                  </button>
-                )
-              })}
-            </div>
+            <p className="text-sm text-white/60 font-space font-semibold whitespace-nowrap">
+              Klik tombol <span className="text-secondary-container font-black px-1">&ldquo;+&rdquo;</span> untuk tambah sesi lanjutan
+            </p>
           </div>
 
           {/* Timer Controls */}
-          <div className="flex flex-col lg:flex-row items-center justify-between gap-8 border-t border-white/20 pt-6">
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-8 border-t border-white/10 pt-8">
             <div className="flex-1 flex flex-col items-center lg:items-start text-center lg:text-left">
-              <span className="font-space text-xs text-white/70 uppercase tracking-widest mb-1 font-bold">Remaining Time</span>
-              <span className="font-space text-7xl font-bold text-secondary-container timer-glow leading-none font-mono">
+              <span className="font-space text-xs text-white/70 uppercase tracking-widest mb-1 font-bold">Sisa Waktu</span>
+              <span className="font-space text-[80px] font-bold text-secondary-container timer-glow leading-none font-mono">
                 {formatTime(timeLeft)}
               </span>
             </div>
-            <div className="flex flex-col gap-4 w-full lg:w-auto">
+            <div className="flex flex-col gap-4 w-full lg:w-[480px]">
               <div className="flex gap-4">
                 {!isTimerRunning ? (
-                  <button onClick={handleStartTimer} className="flex-1 lg:w-40 bg-secondary-container text-on-secondary-container font-black py-3 px-6 rounded-lg shadow-md hover:bg-secondary-container/90 active:scale-95 transition-all font-space tracking-wider uppercase text-sm">
-                    START
+                  <button onClick={handleStartTimer} className="flex-1 bg-secondary-container text-on-secondary-container font-black py-4 px-6 rounded-lg shadow-[0_4px_14px_0_rgba(245,197,24,0.25)] hover:bg-secondary-container/90 active:scale-95 transition-all font-space tracking-wider uppercase text-sm">
+                    MULAI
                   </button>
                 ) : (
-                  <button onClick={handlePauseTimer} className="flex-1 lg:w-40 bg-amber-500 text-white font-black py-3 px-6 rounded-lg shadow-md hover:bg-amber-500/90 active:scale-95 transition-all font-space tracking-wider uppercase text-sm">
-                    PAUSE
+                  <button onClick={handlePauseTimer} className="flex-1 bg-amber-500 text-white font-black py-4 px-6 rounded-lg shadow-[0_4px_14px_0_rgba(245,158,11,0.25)] hover:bg-amber-500/90 active:scale-95 transition-all font-space tracking-wider uppercase text-sm">
+                    JEDA
                   </button>
                 )}
-                <button onClick={handleResetTimer} className="flex-1 lg:w-40 border border-white/30 text-white font-bold py-3 px-6 rounded-lg hover:bg-white/10 transition-colors font-space tracking-wider uppercase text-sm">
-                  RESET
+                <button onClick={handleResetTimer} className="flex-1 border border-outline-main text-white font-bold py-4 px-6 rounded-lg hover:bg-white/5 transition-colors font-space tracking-wider uppercase text-sm">
+                  ATUR ULANG
                 </button>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1">
-                  <label className="font-space text-xs text-white/70 font-bold uppercase">MINUTES</label>
+              <div className="grid grid-cols-2 gap-4 pt-1">
+                <div className="flex flex-col gap-1.5">
+                  <label className="font-space text-[10px] text-white/70 font-bold uppercase tracking-wider">MENIT</label>
                   <input
-                    className="bg-white/10 border border-white/20 text-white font-bold text-lg p-2 rounded-lg text-center focus:border-secondary-container outline-none"
+                    className="bg-[#1A6B2F]/40 border border-[#1A6B2F]/60 text-white font-bold text-base p-2.5 rounded-lg text-center focus:border-secondary-container outline-none transition-colors shadow-inner"
                     type="number" min={0} value={minutes}
                     onChange={e => { const m = Math.max(0, parseInt(e.target.value) || 0); setMinutes(m); setTimeLeft(m * 60 + seconds) }}
                   />
                 </div>
-                <div className="flex flex-col gap-1">
-                  <label className="font-space text-xs text-white/70 font-bold uppercase">SECONDS</label>
+                <div className="flex flex-col gap-1.5">
+                  <label className="font-space text-[10px] text-white/70 font-bold uppercase tracking-wider">DETIK</label>
                   <input
-                    className="bg-white/10 border border-white/20 text-white font-bold text-lg p-2 rounded-lg text-center focus:border-secondary-container outline-none"
+                    className="bg-[#1A6B2F]/40 border border-[#1A6B2F]/60 text-white font-bold text-base p-2.5 rounded-lg text-center focus:border-secondary-container outline-none transition-colors shadow-inner"
                     type="number" min={0} max={59} value={seconds}
                     onChange={e => { const s = Math.min(59, Math.max(0, parseInt(e.target.value) || 0)); setSeconds(s); setTimeLeft(minutes * 60 + s) }}
                   />
@@ -680,22 +756,43 @@ export default function AdminPage() {
                       </div>
                       <h3 className="font-bebas text-3xl tracking-wide text-primary-main font-bold">{parsed.name}</h3>
                     </div>
-                    <div className="text-center my-6">
+                    <div className="text-center my-4">
                       <span className="font-space text-6xl font-black text-primary-main">{team.score}</span>
+                      {team.tiebreaker_score > 0 && (
+                        <div className="mt-1 font-space text-sm font-bold text-red-600 bg-red-50 border border-red-200 py-1 rounded-full px-3 inline-block">
+                          Babak Tambahan: {team.tiebreaker_score} poin
+                        </div>
+                      )}
                     </div>
-                    <div className="flex gap-3">
-                      <button
-                        onClick={() => handleUpdateScore(team.id, -scoreStep)}
-                        className="flex-1 bg-surface-container-low py-3 rounded-lg font-space text-sm font-bold hover:bg-surface-container transition-colors active:scale-95 border border-outline-var text-on-surface"
-                      >
-                        -{scoreStep}
-                      </button>
-                      <button
-                        onClick={() => handleUpdateScore(team.id, scoreStep)}
-                        className="flex-1 bg-secondary-container text-on-secondary-container py-3 rounded-lg font-space text-sm font-black hover:opacity-90 transition-opacity active:scale-95 border border-amber-400 shadow-sm"
-                      >
-                        +{scoreStep}
-                      </button>
+                    <div className="flex flex-col gap-2">
+                      <div className="flex gap-3">
+                        <button
+                          onClick={() => handleUpdateScore(team.id, -scoreStep)}
+                          className="flex-1 bg-surface-container-low py-3 rounded-lg font-space text-sm font-bold hover:bg-surface-container transition-colors active:scale-95 border border-outline-var text-on-surface"
+                        >
+                          -{scoreStep}
+                        </button>
+                        <button
+                          onClick={() => handleUpdateScore(team.id, scoreStep)}
+                          className="flex-1 bg-secondary-container text-on-secondary-container py-3 rounded-lg font-space text-sm font-black hover:opacity-90 transition-opacity active:scale-95 border border-amber-400 shadow-sm"
+                        >
+                          +{scoreStep}
+                        </button>
+                      </div>
+                      <div className="flex gap-3">
+                        <button
+                          onClick={() => handleUpdateTBScore(team.id, -scoreStep)}
+                          className="flex-1 bg-red-50/50 py-2 rounded-lg font-space text-xs font-bold hover:bg-red-50 transition-colors active:scale-95 border border-red-100 text-red-700"
+                        >
+                          -Tambahan {scoreStep}
+                        </button>
+                        <button
+                          onClick={() => handleUpdateTBScore(team.id, scoreStep)}
+                          className="flex-1 bg-red-100 text-red-800 py-2 rounded-lg font-space text-xs font-black hover:bg-red-200 transition-colors active:scale-95 border border-red-200 shadow-sm"
+                        >
+                          +Tambahan {scoreStep}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 )
@@ -707,7 +804,7 @@ export default function AdminPage() {
         {/* Kelola Peserta */}
         <section className="bg-white border border-outline-var p-8 rounded-xl shadow-md space-y-6">
           <div className="flex items-center gap-3 border-b border-outline-var pb-4">
-            <span className="material-symbols-outlined text-primary-main font-bold">manage_accounts</span>
+            <span className="material-symbols-outlined text-primary-main font-bold">group</span>
             <h2 className="font-bebas text-2xl text-primary-main tracking-wide">Kelola Peserta</h2>
             <span className="ml-auto font-space text-xs text-on-surface-variant font-semibold">{teams.length} total terdaftar</span>
           </div>
@@ -745,11 +842,12 @@ export default function AdminPage() {
                     value={newSession}
                     onChange={e => setNewSessionOverride(parseInt(e.target.value))}
                   >
-                    {Array.from({ length: TOTAL_SESSIONS }, (_, i) => i + 1).map(s => {
+                    {Array.from({ length: maxSession }, (_, i) => i + 1).map(s => {
                       const count = teams.filter(t => parseTeamInfo(t.name).session === s).length
+                      const label = s > TOTAL_SESSIONS ? `Babak Lanjutan ${s - TOTAL_SESSIONS}` : `Sesi ${s}`
                       return (
                         <option key={s} value={s} disabled={count >= 3}>
-                          Sesi {s} ({count}/3){count >= 3 ? ' — penuh' : ''}
+                          {label} ({count}/3){count >= 3 ? ' — penuh' : ''}
                         </option>
                       )
                     })}
@@ -773,14 +871,15 @@ export default function AdminPage() {
                 </div>
               ) : (
                 <div className="max-h-[400px] overflow-y-auto space-y-5 pr-1">
-                  {Array.from({ length: TOTAL_SESSIONS }, (_, i) => i + 1).map(sesi => {
+                  {Array.from({ length: maxSession }, (_, i) => i + 1).map(sesi => {
                     const sesiTeams = teams.filter(t => parseTeamInfo(t.name).session === sesi)
                     const isActive = sesi === currentSession
+                    const sesiLabel = sesi > TOTAL_SESSIONS ? `Babak Lanjutan ${sesi - TOTAL_SESSIONS}` : `Sesi ${sesi}`
                     return (
                       <div key={sesi}>
                         <div className="flex items-center gap-2 mb-2">
-                          <span className={`font-space text-xs font-black px-2.5 py-1 rounded-full uppercase tracking-wide ${isActive ? 'bg-primary-container text-white' : 'bg-surface-container text-on-surface-variant border border-outline-var'}`}>
-                            Sesi {sesi}{isActive ? ' ● Aktif' : ''}
+                          <span className={`font-space text-xs font-black px-2.5 py-1 rounded-full uppercase tracking-wide ${isActive ? 'bg-primary-container text-white' : sesi > TOTAL_SESSIONS ? 'bg-amber-100 text-amber-700 border border-amber-300' : 'bg-surface-container text-on-surface-variant border border-outline-var'}`}>
+                            {sesiLabel}{isActive ? ' ● Aktif' : ''}
                           </span>
                           <span className="text-xs text-on-surface-variant font-space">{sesiTeams.length}/3 peserta</span>
                         </div>
@@ -843,7 +942,7 @@ export default function AdminPage() {
             </div>
             <div className="flex gap-3">
               <button onClick={handleReinitDefaultTeams} className="border border-outline-main text-primary-main hover:bg-surface-container-low font-bold px-6 py-2.5 rounded-lg transition-colors font-space text-xs uppercase">
-                Re-init Default Teams
+                Setel Ulang Data Awal
               </button>
               <button onClick={handleResetAllScores} className="border border-red-500 text-red-700 font-bold px-6 py-2.5 rounded-lg hover:bg-red-50 transition-colors font-space text-xs uppercase">
                 Reset Semua Skor
@@ -854,19 +953,19 @@ export default function AdminPage() {
 
         {/* DB Connection Info */}
         <section className="p-6 bg-white rounded-xl border border-outline-var shadow-sm">
-          <h3 className="font-bebas text-xl text-primary-main font-bold mb-3">Supabase Connection Settings</h3>
+          <h3 className="font-bebas text-xl text-primary-main font-bold mb-3">Informasi Koneksi Database</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-space">
             <div>
-              <span className="block text-on-surface-variant uppercase font-bold mb-1">PROJECT REFERENCE</span>
+              <span className="block text-on-surface-variant uppercase font-bold mb-1">Referensi Proyek</span>
               <span className="block font-mono bg-surface-container-low p-2.5 rounded border border-outline-var text-on-surface select-all">vdnfbdxxcgrgqsrrjwmw</span>
             </div>
             <div>
-              <span className="block text-on-surface-variant uppercase font-bold mb-1">API SERVICE ENDPOINT</span>
-              <span className="block font-mono bg-surface-container-low p-2.5 rounded border border-outline-var text-on-surface text-ellipsis overflow-hidden">{dbUrl || 'Not loaded'}</span>
+              <span className="block text-on-surface-variant uppercase font-bold mb-1">Alamat Server API</span>
+              <span className="block font-mono bg-surface-container-low p-2.5 rounded border border-outline-var text-on-surface text-ellipsis overflow-hidden">{dbUrl || 'Belum dimuat'}</span>
             </div>
             <div>
-              <span className="block text-on-surface-variant uppercase font-bold mb-1">ANON API KEY</span>
-              <span className="block font-mono bg-surface-container-low p-2.5 rounded border border-outline-var text-on-surface">{dbKey || 'Not loaded'}</span>
+              <span className="block text-on-surface-variant uppercase font-bold mb-1">Kunci Akses API</span>
+              <span className="block font-mono bg-surface-container-low p-2.5 rounded border border-outline-var text-on-surface">{dbKey || 'Belum dimuat'}</span>
             </div>
           </div>
         </section>

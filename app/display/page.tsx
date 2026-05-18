@@ -7,6 +7,7 @@ type Team = {
   id: number
   name: string
   score: number
+  tiebreaker_score: number
   created_at?: string
 }
 
@@ -115,6 +116,7 @@ export default function DisplayPage() {
       .from('teams')
       .select('*')
       .order('score', { ascending: false })
+      .order('tiebreaker_score', { ascending: false })
       .order('id', { ascending: true })
     if (error) throw error
     return data ?? []
@@ -155,8 +157,11 @@ export default function DisplayPage() {
   }, [applyTimerConfig, loadTimer])
 
   useEffect(() => {
-    fetchTeams()
-    fetchTimer()
+    const initialLoad = setTimeout(() => {
+      fetchTeams()
+      fetchTimer()
+    }, 0)
+
     const teamChannel = supabase.channel('display-teams-realtime')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'teams' }, fetchTeams)
       .subscribe()
@@ -164,6 +169,7 @@ export default function DisplayPage() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'timer_config' }, fetchTimer)
       .subscribe()
     return () => {
+      clearTimeout(initialLoad)
       supabase.removeChannel(teamChannel)
       supabase.removeChannel(timerChannel)
     }
@@ -193,36 +199,36 @@ export default function DisplayPage() {
   const podiumTeams = sessionTeams.slice(0, 3)
 
   return (
-    <div className="bg-[#f8fafc] text-slate-900 min-h-screen font-hanken antialiased pb-24 relative overflow-hidden select-none">
+    <div className="bg-gradient-to-br from-[#F0F4F0] via-white to-[#E8F0E9] text-slate-900 min-h-screen font-hanken antialiased pb-24 relative overflow-hidden select-none">
       
       {/* Decorative Widescreen Broadcaster Header */}
-      <header className="sticky top-0 z-30 bg-slate-900/95 backdrop-blur-md text-white border-b border-slate-800 px-12 h-20 flex justify-between items-center shadow-lg">
-        <div className="flex items-center gap-4">
+      <header className="sticky top-0 z-30 bg-[#145224]/95 backdrop-blur-md text-white border-b border-[#0F3D1E] px-12 h-20 flex justify-between items-center shadow-lg">
+        <div className="flex items-center gap-4 bg-gradient-to-r from-[#0F3D1E] to-[#145224] px-4 py-1.5 rounded-xl border border-[#1A6B2F]/20">
           <img src="https://i.imgur.com/Fz8oi5y.png" alt="Logo Kota Tangerang" className="h-12 w-auto object-contain filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)]" />
-          <div className="h-8 w-px bg-slate-800"></div>
+          <div className="h-8 w-px bg-[#1A6B2F]/30"></div>
           <div>
-            <span className="font-bebas text-2xl font-black text-amber-400 tracking-wider uppercase block leading-none pt-0.5">LIGA BINTANG JUARA</span>
-            <span className="text-[10px] text-slate-400 font-space font-black tracking-widest uppercase block mt-1">KOTA TANGERANG • OFFICIAL SCOREBOARD</span>
+            <span className="font-bebas text-2xl font-black text-[#F5C518] tracking-wider uppercase block leading-none pt-0.5">LIGA BINTANG JUARA</span>
+            <span className="text-[10px] text-slate-400 font-space font-black tracking-widest uppercase block mt-1">KOTA TANGERANG • PAPAN SKOR RESMI</span>
           </div>
         </div>
         
         <div className="flex items-center gap-6">
           <nav className="flex items-center gap-6 h-full font-space text-xs font-bold uppercase tracking-wider">
-            <a className="text-amber-400 border-b-2 border-amber-400 py-2.5" href="/display">Display</a>
-            <a className="text-slate-300 hover:text-amber-400 transition-colors py-2.5" href="/livescore">Live Score</a>
-            <a className="text-slate-300 hover:text-amber-400 transition-colors py-2.5" href="/admin">Admin Panel</a>
+            <a className="text-[#F5C518] border-b-2 border-[#F5C518] py-2.5" href="/display">Layar Utama</a>
+            <a className="text-slate-300 hover:text-[#F5C518] transition-colors py-2.5" href="/livescore">Skor Langsung</a>
+            <a className="text-slate-300 hover:text-[#F5C518] transition-colors py-2.5" href="/admin">Panel Admin</a>
           </nav>
           {isTimerRunning && (
-            <span className="flex items-center gap-2 bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-1.5 rounded-full text-xs font-black font-space live-badge shadow-sm">
-              <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
-              LIVE FEED
+            <span className="flex items-center gap-2 bg-[#F5C518]/20 border border-[#F5C518]/40 text-[#F5C518] px-4 py-1.5 rounded-full text-xs font-black font-space live-badge shadow-sm">
+              <span className="w-2 h-2 rounded-full bg-[#F5C518] animate-pulse"></span>
+              SIARAN LANGSUNG
             </span>
           )}
         </div>
       </header>
 
       {/* Decorative subtle visual glows in background */}
-      <div className="absolute top-44 left-1/4 w-96 h-96 rounded-full bg-blue-400/5 blur-3xl pointer-events-none"></div>
+      <div className="absolute top-44 left-1/4 w-96 h-96 rounded-full bg-emerald-400/5 blur-3xl pointer-events-none"></div>
       <div className="absolute top-96 right-1/4 w-96 h-96 rounded-full bg-amber-400/5 blur-3xl pointer-events-none"></div>
 
       <main className="max-w-[1440px] mx-auto px-12 pt-10 space-y-10 relative z-10">
@@ -261,17 +267,17 @@ export default function DisplayPage() {
         </section>
 
         {/* Stadium Scoreboard Timer Console */}
-        <section className="bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 border border-slate-800 rounded-3xl p-8 shadow-2xl flex flex-col items-center justify-center space-y-4 text-white overflow-hidden relative min-h-[220px]">
-          {/* Grid overlays */}
-          <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white to-transparent pointer-events-none"></div>
-          
+        <section className="bg-gradient-to-br from-[#0D2B16] via-[#0F3D1E] to-[#145224] border border-[#1A6B2F]/30 rounded-3xl p-8 shadow-2xl flex flex-col items-center justify-center space-y-4 text-white overflow-hidden relative min-h-[220px]">
+          {/* Radial glow overlay */}
+          <div className="absolute inset-0 opacity-[0.06] bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-[#F5C518] to-transparent pointer-events-none"></div>
+
           {/* Metadata badges for high-tech look */}
-          <div className="absolute top-4 left-6 font-space text-[10px] tracking-widest text-slate-500 font-bold uppercase flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-            ARENA CLOCK // SYSTEM STATUS: ACTIVE
+          <div className="absolute top-4 left-6 font-space text-[10px] tracking-widest text-[#1A6B2F]/70 font-bold uppercase flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            JAM PERTANDINGAN // STATUS: AKTIF
           </div>
-          <div className="absolute top-4 right-6 font-space text-[10px] tracking-widest text-slate-500 font-bold uppercase">
-            SESI {currentSession} OF {totalSessions}
+          <div className="absolute top-4 right-6 font-space text-[10px] tracking-widest text-[#1A6B2F]/70 font-bold uppercase">
+            SESI {currentSession} DARI {totalSessions}
           </div>
 
           <span className="font-space text-xs text-slate-400 uppercase tracking-widest font-black pt-4">
@@ -379,6 +385,7 @@ export default function DisplayPage() {
                         <td className="py-4 text-center font-bold text-slate-600">{parsed.noUrut}</td>
                         <td className="py-4 text-right">
                           <span className="font-black font-mono text-2xl text-primary-main">{team.score}</span>
+                          {team.tiebreaker_score > 0 && <span className="block font-space text-xs font-bold text-red-500">TB: {team.tiebreaker_score}</span>}
                         </td>
                       </tr>
                     )
@@ -405,7 +412,7 @@ function PodiumCard({ team, rank, parseFn, isCompetitionEnded }: PodiumCardProps
 
   let cardClass = "bg-white border border-outline-var"
   let rankLabel = `POSISI ${rank}`
-  let headerBg = "bg-slate-100 text-slate-700"
+  let headerBg = "bg-[#E8F0E9] border-b border-[#1A6B2F]/20 text-slate-700"
   let scoreClass = "text-slate-900 bg-slate-50 border-slate-200"
 
   if (isCompetitionEnded) {
@@ -469,6 +476,11 @@ function PodiumCard({ team, rank, parseFn, isCompetitionEnded }: PodiumCardProps
           <div className={`px-8 py-3 rounded-2xl border ${scoreClass} font-space font-mono text-5xl font-black shadow-sm tracking-tight transition-transform duration-300 group-hover:scale-110`}>
             {team.score}
           </div>
+          {team.tiebreaker_score > 0 && (
+            <div className="mt-2 font-space text-xs font-bold text-red-500 bg-red-50 border border-red-200 px-3 py-1 rounded-full shadow-sm">
+              TB Score: {team.tiebreaker_score}
+            </div>
+          )}
         </div>
       </div>
     </div>

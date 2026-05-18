@@ -8,45 +8,45 @@
   --font-space: "Space Grotesk", sans-serif;
 
   /* Premium Light Theme Custom Color Tokens based on "Championship Scoreboard" */
-  --color-surface-bg: #f7f9fb;
+  --color-surface-bg: #F0F4F0;              /* background halaman */
   --color-surface-dim: #d8dadc;
   --color-surface-bright: #ffffff;
   --color-surface-container-lowest: #ffffff;
-  --color-surface-container-low: #f2f4f6;
-  --color-surface-container: #eceef0;
+  --color-surface-container-low: #E8F0E9;
+  --color-surface-container: #DCE8DC;
   --color-surface-container-high: #e6e8ea;
   --color-surface-container-highest: #e0e3e5;
   
-  --color-on-surface: #191c1e;
-  --color-on-surface-variant: #444651;
+  --color-on-surface: #111811;              /* teks utama */
+  --color-on-surface-variant: #3A4F3C;      /* teks sekunder */
   --color-inverse-surface: #2d3133;
   --color-inverse-on-surface: #eff1f3;
   
-  --color-outline-main: #757682;
-  --color-outline-var: #c5c5d3;
+  --color-outline-main: #6B916E;
+  --color-outline-var: #B8D0BB;             /* border subtle */
   
-  --color-surface-tint: #4059aa;
-  
-  --color-primary-main: #00236f; /* beautiful dark navy */
+  --color-surface-tint: #1A6B2F;
+
+  --color-primary-main: #1A6B2F;
   --color-on-primary-main: #ffffff;
-  --color-primary-container: #1e3a8a; /* deep blue container */
-  --color-on-primary-container: #dce1ff;
-  --color-inverse-primary: #b6c4ff;
+  --color-primary-container: #145224;       /* navbar, header cards */
+  --color-on-primary-container: #FDE68A;    /* teks di atas container gelap */
+  --color-inverse-primary: #A8D5B2;
   
-  --color-secondary-main: #795900;
+  --color-secondary-main: #7A4A00;
   --color-on-secondary-main: #ffffff;
-  --color-secondary-container: #ffc329; /* beautiful warm gold */
-  --color-on-secondary-container: #6f5100;
+  --color-secondary-container: #F5C518;     /* aksen kuning emas */
+  --color-on-secondary-container: #3B2000;
   
   --color-tertiary-main: #4b1c00;
   --color-on-tertiary-main: #ffffff;
   --color-tertiary-container: #6e2c00;
   --color-on-tertiary-container: #f39461;
 
-  --color-gold: #ffc329;
+  --color-gold: #F5C518;
   --color-silver: #7e8c9c;
   --color-bronze: #c87a53;
-  --color-amber-timer: #ffc329; /* Beautiful gold timer countdown */
+  --color-amber-timer: #F5C518; /* Beautiful gold timer countdown */
 }
 
 body {
@@ -61,7 +61,7 @@ body {
 }
 
 .timer-glow {
-  text-shadow: 0 0 15px rgba(255, 195, 41, 0.4), 0 0 30px rgba(255, 195, 41, 0.2);
+  text-shadow: 0 0 20px rgba(245, 197, 24, 0.5), 0 0 40px rgba(245, 197, 24, 0.25);
 }
 
 .gold-glow {
