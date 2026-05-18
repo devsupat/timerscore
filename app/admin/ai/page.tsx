@@ -318,39 +318,39 @@ export default function AIAnalysisPage() {
   return (
     <div className="bg-gradient-to-br from-[#F0F4F0] via-white to-[#E8F0E9] text-on-surface min-h-screen font-hanken antialiased pb-24">
       {/* Premium Navy Header */}
-      <header className="sticky top-0 z-30 bg-[#145224]/95 backdrop-blur-md text-white border-b border-[#0F3D1E] px-8 h-20 flex justify-between items-center shadow-lg w-full">
-        <div className="flex items-center gap-4 bg-gradient-to-r from-[#0F3D1E] to-[#145224] px-4 py-1.5 rounded-xl border border-[#1A6B2F]/20">
-          <img src="https://i.imgur.com/Fz8oi5y.png" alt="Logo Kota Tangerang" className="h-12 w-auto object-contain filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)]" />
-          <div className="h-8 w-px bg-[#1A6B2F]/30"></div>
-          <div>
-            <span className="font-bebas text-2xl font-black text-[#F5C518] tracking-wider uppercase block leading-none pt-0.5">LIGA BINTANG JUARA</span>
-            <span className="text-[10px] text-slate-400 font-space font-black tracking-widest uppercase block mt-1">KOTA TANGERANG • KONSOL ANALISIS</span>
+      <header className="sticky top-0 z-30 bg-[#145224]/95 backdrop-blur-md text-white border-b border-[#0F3D1E] px-4 py-3 md:px-8 md:py-0 md:h-20 flex flex-col md:flex-row justify-between items-center gap-4 md:gap-0 shadow-lg w-full">
+        <div className="flex items-center gap-2.5 md:gap-4 bg-gradient-to-r from-[#0F3D1E] to-[#145224] px-3 md:px-4 py-1.5 rounded-xl border border-[#1A6B2F]/20 w-full md:w-auto justify-center md:justify-start">
+          <img src="https://i.imgur.com/Fz8oi5y.png" alt="Logo Kota Tangerang" className="h-8 md:h-12 w-auto object-contain flex-shrink-0 filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)]" />
+          <div className="h-6 md:h-8 w-px bg-[#1A6B2F]/30 flex-shrink-0"></div>
+          <div className="min-w-0 flex flex-col justify-center items-start">
+            <span className="font-bebas text-lg md:text-2xl font-black text-[#F5C518] tracking-wider uppercase block leading-none pt-0.5 whitespace-nowrap">LIGA BINTANG JUARA</span>
+            <span className="text-[9px] md:text-[10px] text-slate-400 font-space font-black tracking-widest uppercase block mt-1 whitespace-nowrap">KOTA TANGERANG • KONSOL ANALISIS</span>
           </div>
         </div>
 
-        <div className="flex items-center gap-6">
-          <nav className="flex items-center gap-6 h-full font-space text-xs font-bold uppercase tracking-wider">
-            <a className="text-slate-300 hover:text-[#F5C518] transition-colors py-2.5" href="/display">Layar Utama</a>
-            <a className="text-slate-300 hover:text-[#F5C518] transition-colors py-2.5" href="/livescore">Skor Langsung</a>
-            <a className="text-slate-300 hover:text-[#F5C518] transition-colors py-2.5" href="/admin">Panel Admin</a>
-            <a className="text-[#F5C518] border-b-2 border-[#F5C518] py-2.5" href="/admin/ai">Analisis Cerdas</a>
+        <div className="flex flex-wrap justify-center md:justify-end items-center gap-4 md:gap-6 w-full md:w-auto">
+          <nav className="flex flex-wrap justify-center items-center gap-3 md:gap-6 h-full font-space text-[10px] md:text-xs font-bold uppercase tracking-wider">
+            <a className="text-slate-300 hover:text-[#F5C518] transition-colors py-1 md:py-2.5" href="/display">Layar Utama</a>
+            <a className="text-slate-300 hover:text-[#F5C518] transition-colors py-1 md:py-2.5" href="/livescore">Skor Langsung</a>
+            <a className="text-slate-300 hover:text-[#F5C518] transition-colors py-1 md:py-2.5" href="/admin">Panel Admin</a>
+            <a className="text-[#F5C518] border-b-2 border-[#F5C518] py-1 md:py-2.5" href="/admin/ai">Analisis Cerdas</a>
           </nav>
           
-          <div className="h-8 w-px bg-[#1A6B2F]/30"></div>
+          <div className="hidden md:block h-8 w-px bg-[#1A6B2F]/30"></div>
 
           {/* Live sync connection badge */}
           <div className="flex items-center gap-2 bg-[#1A6B2F]/20 border border-[#1A6B2F]/40 text-[#F5C518] px-3.5 py-1.5 rounded-full shadow-sm">
-            <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
-            <span className="text-[10px] text-[#F5C518] font-space font-black tracking-widest uppercase">TERHUBUNG</span>
+            <div className="w-1.5 md:w-2 h-1.5 md:h-2 rounded-full bg-emerald-400 animate-pulse"></div>
+            <span className="text-[9px] md:text-[10px] text-[#F5C518] font-space font-black tracking-widest uppercase">TERHUBUNG</span>
           </div>
 
           {/* Secure Logout / Lock Console */}
           <button
             onClick={handleLogout}
             title="Kunci Konsol Admin"
-            className="p-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 border border-red-500/20 active:scale-95 transition-all flex items-center justify-center"
+            className="p-1.5 md:p-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 border border-red-500/20 active:scale-95 transition-all flex items-center justify-center"
           >
-            <span className="material-symbols-outlined text-sm font-bold">lock</span>
+            <span className="material-symbols-outlined text-xs md:text-sm font-bold">lock</span>
           </button>
         </div>
       </header>
