@@ -420,17 +420,17 @@ export default function AdminPage() {
       <div className="bg-[#0D2B16] min-h-screen flex flex-col items-center justify-center p-4 antialiased font-space selection:bg-[#F5C518] selection:text-[#3B2000]">
         <div className="w-full max-w-md bg-[#145224]/50 backdrop-blur-md border border-[#0F3D1E] rounded-3xl p-8 shadow-2xl text-center space-y-8">
           <div className="flex flex-col items-center gap-3">
-            <img src="https://i.imgur.com/Fz8oi5y.png" alt="Logo Kota Tangerang" className="h-16 w-auto object-contain filter drop-shadow-[0_4px_8px_rgba(245,197,24,0.2)]" />
+            <Image src="https://i.imgur.com/Fz8oi5y.png" alt="Logo Kota Tangerang" width={64} height={64} unoptimized className="h-16 w-auto object-contain filter drop-shadow-[0_4px_8px_rgba(245,197,24,0.2)]" />
             <div className="space-y-1">
               <h1 className="font-bebas text-3xl font-black text-[#F5C518] tracking-wider">LIGA BINTANG JUARA</h1>
-              <p className="text-[10px] text-slate-400 font-bold tracking-widest uppercase">KOTA TANGERANG • PANEL ADMIN</p>
+              <p className="text-[10px] text-white font-bold tracking-widest uppercase">KOTA TANGERANG • PANEL ADMIN</p>
             </div>
           </div>
 
           <div className="h-px bg-gradient-to-r from-transparent via-[#0F3D1E] to-transparent"></div>
 
           <div className="space-y-4">
-            <span className="text-xs font-black uppercase text-slate-400 tracking-widest block">MASUKKAN PIN KEAMANAN</span>
+            <span className="text-xs font-black uppercase text-white tracking-widest block">MASUKKAN PIN KEAMANAN</span>
             
             {/* PIN Dots display */}
             <div className="flex justify-center gap-4 py-2">
@@ -478,7 +478,7 @@ export default function AdminPage() {
             {/* Clear Button */}
             <button
               onClick={() => setPinInput('')}
-              className="w-16 h-16 rounded-full bg-[#0D2B16] hover:bg-[#145224] active:bg-red-500/20 active:text-red-400 border border-[#0F3D1E] hover:border-[#1A6B2F] text-xs font-black text-slate-400 transition-all flex items-center justify-center shadow-lg"
+              className="w-16 h-16 rounded-full bg-[#0D2B16] hover:bg-[#145224] active:bg-red-500/20 active:text-red-400 border border-[#0F3D1E] hover:border-[#1A6B2F] text-xs font-black text-white transition-all flex items-center justify-center shadow-lg"
             >
               HAPUS
             </button>
@@ -502,7 +502,7 @@ export default function AdminPage() {
             {/* Keluar/Kembali Button */}
             <a
               href="/livescore"
-              className="w-16 h-16 rounded-full bg-[#0D2B16] hover:bg-[#145224] border border-[#0F3D1E] hover:border-[#1A6B2F] text-[10px] font-black text-slate-400 transition-all flex items-center justify-center shadow-lg uppercase"
+              className="w-16 h-16 rounded-full bg-[#0D2B16] hover:bg-[#145224] border border-[#0F3D1E] hover:border-[#1A6B2F] text-[10px] font-black text-white transition-all flex items-center justify-center shadow-lg uppercase"
             >
               Batal
             </a>
@@ -525,9 +525,15 @@ export default function AdminPage() {
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border border-outline-var relative z-10">
             <div className={`p-6 border-b ${confirmDialog.isDestructive ? 'bg-red-50 border-red-100' : 'bg-surface-container-low border-outline-var'}`}>
               <div className="flex items-center gap-3">
-                <span className={`material-symbols-outlined text-3xl ${confirmDialog.isDestructive ? 'text-red-600' : 'text-primary-main'}`}>
-                  {confirmDialog.isDestructive ? 'warning' : 'help'}
-                </span>
+                {confirmDialog.isDestructive ? (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-7 h-7 text-red-600 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                    <path fillRule="evenodd" d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clipRule="evenodd" />
+                  </svg>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-7 h-7 text-primary-main flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                    <path fillRule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm8.706-1.442c1.146-.573 2.437.463 2.126 1.706l-.709 2.836.042-.02a.75.75 0 01.67 1.34l-.04.022c-1.147.573-2.438-.463-2.127-1.706l.71-2.836-.042.02a.75.75 0 11-.671-1.34l.041-.022zM12 9a.75.75 0 100-1.5.75.75 0 000 1.5z" clipRule="evenodd" />
+                  </svg>
+                )}
                 <h3 className={`font-bebas text-2xl tracking-wide pt-1 ${confirmDialog.isDestructive ? 'text-red-700' : 'text-primary-main'}`}>
                   {confirmDialog.title}
                 </h3>
@@ -552,11 +558,11 @@ export default function AdminPage() {
       {/* Header */}
       <header className="sticky top-0 z-30 bg-[#145224]/95 backdrop-blur-md text-white border-b border-[#0F3D1E] px-4 py-3 md:px-8 md:py-0 md:h-20 flex flex-col md:flex-row justify-between items-center gap-4 md:gap-0 shadow-lg w-full">
         <div className="flex items-center gap-2.5 md:gap-4 bg-gradient-to-r from-[#0F3D1E] to-[#145224] px-3 md:px-4 py-1.5 rounded-xl border border-[#1A6B2F]/20 w-full md:w-auto justify-center md:justify-start">
-          <img src="https://i.imgur.com/Fz8oi5y.png" alt="Logo Kota Tangerang" className="h-8 md:h-12 w-auto object-contain flex-shrink-0 filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)]" />
+          <Image src="https://i.imgur.com/Fz8oi5y.png" alt="Logo Kota Tangerang" width={48} height={48} unoptimized className="h-8 md:h-12 w-auto object-contain flex-shrink-0 filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)]" />
           <div className="h-6 md:h-8 w-px bg-[#1A6B2F]/30 flex-shrink-0"></div>
           <div className="min-w-0 flex flex-col justify-center items-start">
             <span className="font-bebas text-lg md:text-2xl font-black text-[#F5C518] tracking-wider uppercase block leading-none pt-0.5 whitespace-nowrap">LIGA BINTANG JUARA</span>
-            <span className="text-[9px] md:text-[10px] text-slate-400 font-space font-black tracking-widest uppercase block mt-1 whitespace-nowrap">KOTA TANGERANG • PANEL ADMIN</span>
+            <span className="text-[9px] md:text-[10px] text-white font-space font-black tracking-widest uppercase block mt-1 whitespace-nowrap">KOTA TANGERANG • PANEL ADMIN</span>
           </div>
         </div>
         

@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import Image from 'next/image'
 import { supabase } from '@/lib/supabase'
 
 type Team = {
@@ -168,11 +169,11 @@ export default function LiveScorePage() {
     <div className="bg-surface-bg text-on-surface min-h-screen font-hanken antialiased">
       <header className="sticky top-0 z-30 bg-[#145224]/95 backdrop-blur-md text-white border-b border-[#0F3D1E] px-4 py-3 md:px-6 md:py-0 md:h-20 flex flex-col md:flex-row justify-between items-center gap-3 md:gap-0 shadow-lg">
         <div className="flex items-center gap-2.5 md:gap-4 bg-gradient-to-r from-[#0F3D1E] to-[#145224] px-3 md:px-4 py-1.5 rounded-xl border border-[#1A6B2F]/20 w-full md:w-auto justify-center md:justify-start">
-          <img src="https://i.imgur.com/Fz8oi5y.png" alt="Logo Kota Tangerang" className="h-8 md:h-12 w-auto flex-shrink-0 object-contain filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)]" />
+          <Image src="https://i.imgur.com/Fz8oi5y.png" alt="Logo Kota Tangerang" width={48} height={48} unoptimized className="h-8 md:h-12 w-auto flex-shrink-0 object-contain filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)]" />
           <div className="h-6 md:h-8 w-px bg-[#1A6B2F]/30 flex-shrink-0"></div>
           <div className="min-w-0 flex flex-col justify-center items-start">
             <span className="font-bebas text-lg md:text-2xl font-black text-[#F5C518] tracking-wider uppercase block leading-none pt-0.5 whitespace-nowrap">LIGA BINTANG JUARA</span>
-            <span className="text-[9px] md:text-[10px] text-slate-400 font-space font-black tracking-widest uppercase block mt-1 whitespace-nowrap">KOTA TANGERANG • PLATFORM PENONTON</span>
+            <span className="text-[9px] md:text-[10px] text-white font-space font-black tracking-widest uppercase block mt-1 whitespace-nowrap">KOTA TANGERANG • PLATFORM PENONTON</span>
           </div>
         </div>
 

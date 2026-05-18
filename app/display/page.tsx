@@ -272,7 +272,7 @@ export default function DisplayPage() {
           <div className="absolute inset-0 opacity-[0.06] bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-[#F5C518] to-transparent pointer-events-none"></div>
 
           {/* Metadata badges for high-tech look */}
-          <div className="absolute top-4 left-6 font-space text-[10px] tracking-widest text-[#1A6B2F]/70 font-bold uppercase flex items-center gap-2">
+          <div className="absolute top-4 left-6 font-space text-[10px] tracking-widest text-[#F5C518]/80 font-bold uppercase flex items-center gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
             JAM PERTANDINGAN // STATUS: AKTIF
           </div>
