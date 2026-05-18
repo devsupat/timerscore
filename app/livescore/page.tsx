@@ -34,26 +34,33 @@ function formatTime(seconds: number) {
 }
 
 function computeFinalTop7(teams: Team[]) {
-  const sorted = [...teams].sort((a, b) =>
+  const maxSes = teams.length > 0 ? Math.max(...teams.map(t => parseTeamInfo(t.name).session)) : 1
+  const isLanjutan = maxSes > 4
+  // Saat lanjutan aktif, hanya hitung skor dari sesi lanjutan (babak baru, skor fresh)
+  const relevant = isLanjutan
+    ? teams.filter(t => parseTeamInfo(t.name).session > 4)
+    : teams
+
+  const sorted = [...relevant].sort((a, b) =>
     b.score !== a.score ? b.score - a.score :
     b.tiebreaker_score !== a.tiebreaker_score ? b.tiebreaker_score - a.tiebreaker_score :
     a.id - b.id
   )
-  
+
   const rank7Score = sorted[6]?.score
   const atCutoff = sorted.filter(t => t.score === rank7Score)
   const needsCutoffTB = atCutoff.length > 1 && sorted.indexOf(atCutoff[0]) < 7
-  
+
   const top7 = sorted.slice(0, 7)
-  
+
   const scoreMap = new Map<number, Team[]>()
   for (const t of top7) {
     if (!scoreMap.has(t.score)) scoreMap.set(t.score, [])
     scoreMap.get(t.score)!.push(t)
   }
   const internalTies = [...scoreMap.values()].filter(g => g.length > 1)
-  
-  return { top7, needsCutoffTB, internalTies, cutoffCandidates: atCutoff }
+
+  return { top7, needsCutoffTB, internalTies, cutoffCandidates: atCutoff, isLanjutan }
 }
 
 export default function LiveScorePage() {
@@ -150,6 +157,9 @@ export default function LiveScorePage() {
     : 'bg-surface-container-low text-on-surface-variant border-outline-var'
 
   const totalSessions = Math.max(4, currentSession, teams.length > 0 ? Math.max(...teams.map(t => parseTeamInfo(t.name).session)) : 4)
+  const isLanjutanSession = currentSession > 4
+
+  const sessionLabel = (s: number) => s > 4 ? `Lanjutan ${s - 4}` : `Sesi ${s}`
 
   // Current session teams (sorted by score desc, already from DB)
   const sessionTeams = teams.filter(t => parseTeamInfo(t.name).session === currentSession)
@@ -181,22 +191,31 @@ export default function LiveScorePage() {
           {eventSubtitle && <p className="text-sm text-white/70 font-space">{eventSubtitle}</p>}
 
           {/* Session pills */}
-          <div className="flex items-center justify-center gap-2 pt-2">
+          <div className="flex items-center justify-center flex-wrap gap-2 pt-2">
             {Array.from({ length: totalSessions }, (_, i) => i + 1).map(s => (
               <span
                 key={s}
                 className={`font-space text-xs font-black px-2.5 py-1 rounded-full uppercase tracking-wide ${
                   s === currentSession
-                    ? 'bg-secondary-container text-on-secondary-container'
+                    ? s > 4
+                      ? 'bg-amber-400 text-slate-950'
+                      : 'bg-secondary-container text-on-secondary-container'
                     : s < currentSession
                     ? 'bg-white/10 text-white/40 line-through'
                     : 'bg-white/10 text-white/50'
                 }`}
               >
-                Sesi {s}
+                {sessionLabel(s)}
               </span>
             ))}
           </div>
+
+          {isLanjutanSession && isLive && (
+            <div className="inline-flex items-center gap-2 bg-amber-400/20 border border-amber-400/50 px-4 py-1.5 rounded-full mt-1">
+              <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+              <span className="font-space text-xs font-black text-amber-300 uppercase tracking-widest">🏆 Babak Penentu Pemenang — Sedang Berlangsung</span>
+            </div>
+          )}
 
           <div className="pt-4 pb-2 space-y-1">
             {timeLeft !== null ? (
@@ -222,7 +241,13 @@ export default function LiveScorePage() {
         <div className="bg-white border border-outline-var rounded-2xl shadow-md overflow-hidden">
           <div className="px-6 py-4 border-b border-outline-var flex items-center justify-between">
             <h2 className="font-bebas text-2xl text-primary-main tracking-wide">
-              {isEnded ? `Hasil Akhir Sesi ${currentSession}` : `Ranking Sementara — Sesi ${currentSession}`}
+              {isLanjutanSession
+                ? isEnded
+                  ? `🏆 Hasil Akhir — ${sessionLabel(currentSession)}`
+                  : `🔥 Babak Penentu Pemenang — ${sessionLabel(currentSession)}`
+                : isEnded
+                  ? `Hasil Akhir Sesi ${currentSession}`
+                  : `Ranking Sementara — Sesi ${currentSession}`}
             </h2>
             <span className="font-space text-xs text-on-surface-variant font-semibold">{sessionTeams.length} peserta</span>
           </div>
@@ -271,16 +296,23 @@ export default function LiveScorePage() {
 
         {/* All sessions summary (Top 7) */}
         {(() => {
-          const { top7, needsCutoffTB, internalTies } = computeFinalTop7(teams)
+          const { top7, needsCutoffTB, internalTies, isLanjutan } = computeFinalTop7(teams)
           if (top7.length === 0) return null
-          
+
+          const panelTitle = isLanjutan
+            ? '🏆 Klasemen Babak Penentu Pemenang'
+            : 'Rekap Global — Top 7 Sementara'
+          const panelBorder = isLanjutan
+            ? 'border-amber-300 bg-gradient-to-b from-amber-50/50 to-white'
+            : 'border-outline-var bg-white'
+
           return (
-            <div className="bg-white border border-outline-var rounded-2xl shadow-md overflow-hidden">
-              <div className="px-6 py-4 border-b border-outline-var flex items-center justify-between">
-                <h2 className="font-bebas text-xl text-primary-main tracking-wide">Rekap Global — Top 7 Sementara</h2>
+            <div className={`border rounded-2xl shadow-md overflow-hidden ${panelBorder}`}>
+              <div className="px-6 py-4 border-b border-inherit flex items-center justify-between">
+                <h2 className="font-bebas text-xl text-primary-main tracking-wide">{panelTitle}</h2>
                 {needsCutoffTB && (
                   <span className="font-space text-xs font-bold text-red-600 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full uppercase tracking-wider animate-pulse">
-                    Tiebreaker Cutoff Required
+                    Perlu Babak Tambahan
                   </span>
                 )}
               </div>
