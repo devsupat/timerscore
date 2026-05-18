@@ -404,6 +404,8 @@ export default function AdminPage() {
   }
 
   const sessionTeams = teams.filter(t => parseTeamInfo(t.name).session === currentSession)
+  // Kartu scoring diurutkan by id agar posisi tidak bergeser saat skor berubah
+  const scoringCards = [...sessionTeams].sort((a, b) => a.id - b.id)
 
   if (checkingAuth) {
     return (
@@ -735,13 +737,14 @@ export default function AdminPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {sessionTeams.map((team, idx) => {
+              {scoringCards.map((team) => {
                 const parsed = parseTeamInfo(team.name)
+                const rank = sessionTeams.findIndex(t => t.id === team.id)
                 const medalEmoji = isEnded
-                  ? idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : null
+                  ? rank === 0 ? '🥇' : rank === 1 ? '🥈' : rank === 2 ? '🥉' : null
                   : null
-                const glowClass = isEnded && idx < 3
-                  ? idx === 0 ? 'gold-glow border-2' : idx === 1 ? 'silver-glow border-2' : 'bronze-glow border-2'
+                const glowClass = isEnded && rank < 3
+                  ? rank === 0 ? 'gold-glow border-2' : rank === 1 ? 'silver-glow border-2' : 'bronze-glow border-2'
                   : 'border-outline-var'
 
                 return (
