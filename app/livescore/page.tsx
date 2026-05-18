@@ -34,9 +34,7 @@ function formatTime(seconds: number) {
 }
 
 function computeFinalTop7(teams: Team[]) {
-  const regularTeams = teams.filter(t => parseTeamInfo(t.name).session <= 4)
-  
-  const sorted = [...regularTeams].sort((a, b) =>
+  const sorted = [...teams].sort((a, b) =>
     b.score !== a.score ? b.score - a.score :
     b.tiebreaker_score !== a.tiebreaker_score ? b.tiebreaker_score - a.tiebreaker_score :
     a.id - b.id
@@ -63,7 +61,6 @@ export default function LiveScorePage() {
   const [eventTitle, setEventTitle] = useState('LIVE SCORE')
   const [eventSubtitle, setEventSubtitle] = useState('')
   const [currentSession, setCurrentSession] = useState(1)
-  const totalSessions = 4
 
   const [timeLeft, setTimeLeft] = useState<number | null>(null)
   const [isTimerRunning, setIsTimerRunning] = useState(false)
@@ -151,6 +148,8 @@ export default function LiveScorePage() {
     : isLive
     ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
     : 'bg-surface-container-low text-on-surface-variant border-outline-var'
+
+  const totalSessions = Math.max(4, currentSession, teams.length > 0 ? Math.max(...teams.map(t => parseTeamInfo(t.name).session)) : 4)
 
   // Current session teams (sorted by score desc, already from DB)
   const sessionTeams = teams.filter(t => parseTeamInfo(t.name).session === currentSession)
