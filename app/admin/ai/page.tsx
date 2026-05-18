@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import Image from 'next/image';
 import { supabase } from '@/lib/supabase';
 
@@ -229,7 +229,7 @@ export default function AIAnalysisPage() {
       <div className="bg-[#0D2B16] min-h-screen flex flex-col items-center justify-center p-4 antialiased font-space selection:bg-[#F5C518] selection:text-[#3B2000]">
         <div className="w-full max-w-md bg-[#145224]/50 backdrop-blur-md border border-[#0F3D1E] rounded-3xl p-8 shadow-2xl text-center space-y-8">
           <div className="flex flex-col items-center gap-3">
-            <img src="https://i.imgur.com/Fz8oi5y.png" alt="Logo Kota Tangerang" className="h-16 w-auto object-contain filter drop-shadow-[0_4px_8px_rgba(245,197,24,0.2)]" />
+            <Image src="https://i.imgur.com/Fz8oi5y.png" alt="Logo Kota Tangerang" width={64} height={64} unoptimized className="h-16 w-auto object-contain filter drop-shadow-[0_4px_8px_rgba(245,197,24,0.2)]" />
             <div className="space-y-1">
               <h1 className="font-bebas text-3xl font-black text-[#F5C518] tracking-wider">LIGA BINTANG JUARA</h1>
               <p className="text-[10px] text-slate-400 font-bold tracking-widest uppercase">KOTA TANGERANG • KONSOL ANALISIS</p>
@@ -320,7 +320,7 @@ export default function AIAnalysisPage() {
       {/* Premium Navy Header */}
       <header className="sticky top-0 z-30 bg-[#145224]/95 backdrop-blur-md text-white border-b border-[#0F3D1E] px-4 py-3 md:px-8 md:py-0 md:h-20 flex flex-col md:flex-row justify-between items-center gap-4 md:gap-0 shadow-lg w-full">
         <div className="flex items-center gap-2.5 md:gap-4 bg-gradient-to-r from-[#0F3D1E] to-[#145224] px-3 md:px-4 py-1.5 rounded-xl border border-[#1A6B2F]/20 w-full md:w-auto justify-center md:justify-start">
-          <img src="https://i.imgur.com/Fz8oi5y.png" alt="Logo Kota Tangerang" className="h-8 md:h-12 w-auto object-contain flex-shrink-0 filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)]" />
+          <Image src="https://i.imgur.com/Fz8oi5y.png" alt="Logo Kota Tangerang" width={48} height={48} unoptimized className="h-8 md:h-12 w-auto object-contain flex-shrink-0 filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)]" />
           <div className="h-6 md:h-8 w-px bg-[#1A6B2F]/30 flex-shrink-0"></div>
           <div className="min-w-0 flex flex-col justify-center items-start">
             <span className="font-bebas text-lg md:text-2xl font-black text-[#F5C518] tracking-wider uppercase block leading-none pt-0.5 whitespace-nowrap">LIGA BINTANG JUARA</span>
@@ -350,7 +350,7 @@ export default function AIAnalysisPage() {
             title="Kunci Konsol Admin"
             className="p-1.5 md:p-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 border border-red-500/20 active:scale-95 transition-all flex items-center justify-center"
           >
-            <span className="material-symbols-outlined text-xs md:text-sm font-bold">lock</span>
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path fillRule="evenodd" d="M12 1.5a5.25 5.25 0 00-5.25 5.25v3a3 3 0 00-3 3v6.75a3 3 0 003 3h10.5a3 3 0 003-3v-6.75a3 3 0 00-3-3v-3A5.25 5.25 0 0012 1.5zm3.75 8.25v-3a3.75 3.75 0 10-7.5 0v3h7.5z" clipRule="evenodd" /></svg>
           </button>
         </div>
       </header>
@@ -362,7 +362,7 @@ export default function AIAnalysisPage() {
         <section className="bg-white border border-outline-var p-8 rounded-2xl shadow-md space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-4 border-b border-outline-var pb-4">
             <div className="flex items-center gap-3">
-              <span className="material-symbols-outlined text-primary-main font-bold text-3xl">analytics</span>
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 text-primary-main" viewBox="0 0 24 24" fill="currentColor"><path d="M18.375 2.25c-1.035 0-1.875.84-1.875 1.875v15.75c0 1.035.84 1.875 1.875 1.875h.75c1.035 0 1.875-.84 1.875-1.875V4.125c0-1.036-.84-1.875-1.875-1.875h-.75zM9.75 8.625c0-1.036.84-1.875 1.875-1.875h.75c1.036 0 1.875.84 1.875 1.875v11.25c0 1.035-.84 1.875-1.875 1.875h-.75a1.875 1.875 0 01-1.875-1.875V8.625zM3 13.125c0-1.036.84-1.875 1.875-1.875h.75c1.036 0 1.875.84 1.875 1.875v6.75c0 1.035-.84 1.875-1.875 1.875h-.75A1.875 1.875 0 013 19.875v-6.75z" /></svg>
               <h2 className="font-bebas text-2xl text-primary-main tracking-wide">Snapshot Data Kompetisi</h2>
             </div>
             <div className="flex items-center gap-3">
@@ -433,7 +433,7 @@ export default function AIAnalysisPage() {
           {top7.length > 0 && (
             <div className="bg-primary-container/5 border border-primary-container/20 rounded-xl p-5 space-y-3">
               <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-primary-main text-xl">workspace_premium</span>
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-primary-main" viewBox="0 0 24 24" fill="currentColor"><path fillRule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" clipRule="evenodd" /></svg>
                 <h3 className="font-bebas text-xl text-primary-main tracking-wide">
                   {teams.length >= 7 ? '7 Besar Sementara — Kandidat Lolos Babak Berikutnya' : `${top7.length} Peserta Terdaftar (Butuh ${7 - top7.length} lagi untuk penentuan 7 besar)`}
                 </h3>
@@ -460,7 +460,7 @@ export default function AIAnalysisPage() {
                 if (rank7Score !== undefined && tied.length > 1 && teams.some(t => t.score === rank7Score && top7.indexOf(t) === -1)) {
                   return (
                     <div className="flex items-center gap-2 bg-orange-50 border border-orange-300 rounded-lg px-4 py-2.5 text-xs font-space font-bold text-orange-700">
-                      <span className="material-symbols-outlined text-base">warning</span>
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor"><path fillRule="evenodd" d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clipRule="evenodd" /></svg>
                       Terdapat {tied.length} sekolah dengan skor sama di posisi batas — diperlukan babak tambahan untuk menentukan yang berhak lolos.
                     </div>
                   );
@@ -487,7 +487,7 @@ export default function AIAnalysisPage() {
               </>
             ) : (
               <>
-                <span className="material-symbols-outlined" style={{fontVariationSettings:"'FILL' 1"}}>bolt</span>
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path fillRule="evenodd" d="M14.615 1.595a.75.75 0 01.359.852L12.982 9.75h7.268a.75.75 0 01.548 1.262l-10.5 11.25a.75.75 0 01-1.272-.71l1.992-7.302H3.818a.75.75 0 01-.548-1.262l10.5-11.25a.75.75 0 01.845-.143z" clipRule="evenodd" /></svg>
                 <span>Analisis Siapa 7 Besar yang Berhak Lolos</span>
               </>
             )}
@@ -497,7 +497,7 @@ export default function AIAnalysisPage() {
         {/* ERROR STATE */}
         {errorMsg && (
           <section className="bg-rose-50 border-2 border-rose-200 p-6 rounded-2xl flex items-start gap-4 shadow-sm">
-            <span className="material-symbols-outlined text-rose-600 font-bold text-3xl">error</span>
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 text-rose-600 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor"><path fillRule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clipRule="evenodd" /></svg>
             <div className="space-y-2 flex-1">
               <h3 className="font-bebas text-xl text-rose-700 tracking-wide">Sistem Analisis Tidak Dapat Dihubungi</h3>
               <p className="text-sm font-space text-rose-600 font-medium">{errorMsg}</p>
@@ -516,10 +516,10 @@ export default function AIAnalysisPage() {
           <section className="bg-white border border-outline-var p-8 rounded-2xl shadow-md space-y-6">
             <div className="flex flex-wrap items-center justify-between gap-4 border-b border-outline-var pb-4">
               <div className="flex items-center gap-3">
-                <span className="material-symbols-outlined text-amber-500 font-bold text-3xl animate-pulse">psychology</span>
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 text-amber-500 animate-pulse flex-shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .75a8.25 8.25 0 00-4.135 15.39c.686.398 1.115 1.008 1.134 1.623a.75.75 0 00.577.706c.352.083.71.148 1.074.195.323.041.6-.218.6-.544v-4.661a6.714 6.714 0 01-.937-.171.75.75 0 11.374-1.453 5.261 5.261 0 002.626 0 .75.75 0 11.374 1.452 6.712 6.712 0 01-.937.172v4.66c0 .327.277.586.6.545.364-.047.722-.112 1.074-.195a.75.75 0 00.577-.706c.02-.615.448-1.225 1.134-1.623A8.25 8.25 0 0012 .75z" /><path fillRule="evenodd" d="M9.013 19.9a.75.75 0 01.877-.597 11.319 11.319 0 004.22 0 .75.75 0 11.28 1.473 12.819 12.819 0 01-4.78 0 .75.75 0 01-.597-.876zM9.754 22.344a.75.75 0 01.824-.668 13.682 13.682 0 002.844 0 .75.75 0 11.156 1.492 15.156 15.156 0 01-3.156 0 .75.75 0 01-.668-.824z" clipRule="evenodd" /></svg>
                 <h2 className="font-bebas text-2xl text-primary-main tracking-wide">Hasil Penilaian — Rekomendasi 7 Besar</h2>
                 <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 text-amber-600 font-space text-[10px] font-black tracking-widest uppercase px-2.5 py-1 rounded-full">
-                  <span className="material-symbols-outlined text-sm" style={{fontVariationSettings:"'FILL' 1"}}>auto_awesome</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path fillRule="evenodd" d="M9 4.5a.75.75 0 01.721.544l.813 2.846a3.75 3.75 0 002.576 2.576l2.846.813a.75.75 0 010 1.442l-2.846.813a3.75 3.75 0 00-2.576 2.576l-.813 2.846a.75.75 0 01-1.442 0l-.813-2.846a3.75 3.75 0 00-2.576-2.576l-2.846-.813a.75.75 0 010-1.442l2.846-.813A3.75 3.75 0 007.466 7.89l.813-2.846A.75.75 0 019 4.5zM18 1.5a.75.75 0 01.728.568l.258 1.036a2.63 2.63 0 001.91 1.91l1.036.258a.75.75 0 010 1.456l-1.036.258a2.63 2.63 0 00-1.91 1.91l-.258 1.036a.75.75 0 01-1.456 0l-.258-1.036a2.63 2.63 0 00-1.91-1.91l-1.036-.258a.75.75 0 010-1.456l1.036-.258a2.63 2.63 0 001.91-1.91l.258-1.036A.75.75 0 0118 1.5z" clipRule="evenodd" /></svg>
                   <span>Sistem Cerdas</span>
                 </div>
               </div>
@@ -541,7 +541,7 @@ export default function AIAnalysisPage() {
                       className="bg-amber-50/50 border border-amber-300 rounded-xl p-5 flex items-start gap-4 shadow-sm"
                     >
                       <div className="bg-amber-100 border border-amber-300 text-amber-600 p-2.5 rounded-lg flex items-center justify-center shrink-0 shadow-inner">
-                        <span className="material-symbols-outlined" style={{fontVariationSettings:"'FILL' 1"}}>lightbulb</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .75a8.25 8.25 0 00-4.135 15.39c.686.398 1.115 1.008 1.134 1.623a.75.75 0 00.577.706c.352.083.71.148 1.074.195.323.041.6-.218.6-.544v-4.661a6.714 6.714 0 01-.937-.171.75.75 0 11.374-1.453 5.261 5.261 0 002.626 0 .75.75 0 11.374 1.452 6.712 6.712 0 01-.937.172v4.66c0 .327.277.586.6.545.364-.047.722-.112 1.074-.195a.75.75 0 00.577-.706c.02-.615.448-1.225 1.134-1.623A8.25 8.25 0 0012 .75z" /></svg>
                       </div>
                       <div className="space-y-1">
                         <h4 className="font-bebas text-lg text-amber-700 tracking-wide font-black">Rekomendasi Juri & Panitia</h4>
@@ -588,7 +588,7 @@ export default function AIAnalysisPage() {
                 disabled={loading}
                 className="flex items-center gap-2 border border-outline-var text-on-surface font-space text-xs font-bold py-2.5 px-5 rounded-lg hover:bg-surface-container-low active:scale-95 transition-all shadow-sm"
               >
-                <span className="material-symbols-outlined text-sm font-bold">refresh</span>
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path fillRule="evenodd" d="M4.755 10.059a7.5 7.5 0 0112.548-3.364l1.903 1.903h-3.183a.75.75 0 100 1.5h4.992a.75.75 0 00.75-.75V4.356a.75.75 0 00-1.5 0v3.18l-1.9-1.9A9 9 0 003.306 9.67a.75.75 0 101.45.388zm15.408 3.352a.75.75 0 00-.919.53 7.5 7.5 0 01-12.548 3.364l-1.902-1.903h3.183a.75.75 0 000-1.5H3.984a.75.75 0 00-.75.75v4.992a.75.75 0 001.5 0v-3.18l1.9 1.9a9 9 0 0015.059-4.035.75.75 0 00-.53-.918z" clipRule="evenodd" /></svg>
                 <span>Refresh Analisis</span>
               </button>
             </div>
