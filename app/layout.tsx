@@ -5,9 +5,9 @@ export const metadata: Metadata = {
   title: "Real-time Competition Scoreboard",
   description: "High-contrast dynamic competition scoreboard powered by Next.js and Supabase Realtime.",
   icons: {
-    icon: "https://i.ibb.co.com/8m5k2px/Logo-Kota-Tangerang.png",
-    shortcut: "https://i.ibb.co.com/8m5k2px/Logo-Kota-Tangerang.png",
-    apple: "https://i.ibb.co.com/8m5k2px/Logo-Kota-Tangerang.png",
+    icon: "/logo_sekolah.png",
+    shortcut: "/logo_sekolah.png",
+    apple: "/logo_sekolah.png",
   }
 };
 
