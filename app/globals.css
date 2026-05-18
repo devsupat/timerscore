@@ -1,0 +1,95 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Hanken+Grotesk:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0..1,0');
+@import "tailwindcss";
+
+@theme {
+  --font-bebas: "Bebas Neue", sans-serif;
+  --font-hanken: "Hanken Grotesk", sans-serif;
+  --font-space: "Space Grotesk", sans-serif;
+
+  /* Premium Light Theme Custom Color Tokens based on "Championship Scoreboard" */
+  --color-surface-bg: #f7f9fb;
+  --color-surface-dim: #d8dadc;
+  --color-surface-bright: #ffffff;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f2f4f6;
+  --color-surface-container: #eceef0;
+  --color-surface-container-high: #e6e8ea;
+  --color-surface-container-highest: #e0e3e5;
+  
+  --color-on-surface: #191c1e;
+  --color-on-surface-variant: #444651;
+  --color-inverse-surface: #2d3133;
+  --color-inverse-on-surface: #eff1f3;
+  
+  --color-outline-main: #757682;
+  --color-outline-var: #c5c5d3;
+  
+  --color-surface-tint: #4059aa;
+  
+  --color-primary-main: #00236f; /* beautiful dark navy */
+  --color-on-primary-main: #ffffff;
+  --color-primary-container: #1e3a8a; /* deep blue container */
+  --color-on-primary-container: #dce1ff;
+  --color-inverse-primary: #b6c4ff;
+  
+  --color-secondary-main: #795900;
+  --color-on-secondary-main: #ffffff;
+  --color-secondary-container: #ffc329; /* beautiful warm gold */
+  --color-on-secondary-container: #6f5100;
+  
+  --color-tertiary-main: #4b1c00;
+  --color-on-tertiary-main: #ffffff;
+  --color-tertiary-container: #6e2c00;
+  --color-on-tertiary-container: #f39461;
+
+  --color-gold: #ffc329;
+  --color-silver: #7e8c9c;
+  --color-bronze: #c87a53;
+  --color-amber-timer: #ffc329; /* Beautiful gold timer countdown */
+}
+
+body {
+  background-color: var(--color-surface-bg);
+  color: var(--color-on-surface);
+  font-family: var(--font-hanken);
+}
+
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+.timer-glow {
+  text-shadow: 0 0 15px rgba(255, 195, 41, 0.4), 0 0 30px rgba(255, 195, 41, 0.2);
+}
+
+.gold-glow {
+  box-shadow: 0 4px 20px rgba(255, 195, 41, 0.25);
+  border-color: #ffc329;
+}
+
+.silver-glow {
+  box-shadow: 0 4px 20px rgba(126, 140, 156, 0.15);
+  border-color: #7e8c9c;
+}
+
+.bronze-glow {
+  box-shadow: 0 4px 20px rgba(200, 122, 83, 0.15);
+  border-color: #c87a53;
+}
+
+@keyframes pulse-gold {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(0.96);
+  }
+}
+
+.live-badge {
+  animation: pulse-gold 2s infinite ease-in-out;
+}

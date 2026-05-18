@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Championship Scoreboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-variant": "#e0e3e5",
+                    "surface-container-highest": "#e0e3e5",
+                    "on-secondary-fixed": "#261a00",
+                    "secondary-fixed": "#ffdf9f",
+                    "background": "#f7f9fb",
+                    "tertiary-fixed-dim": "#ffb691",
+                    "on-tertiary": "#ffffff",
+                    "surface": "#f7f9fb",
+                    "primary-container": "#1e3a8a",
+                    "inverse-primary": "#b6c4ff",
+                    "primary": "#00236f",
+                    "surface-bright": "#f7f9fb",
+                    "tertiary-fixed": "#ffdbcb",
+                    "on-background": "#191c1e",
+                    "on-tertiary-container": "#f39461",
+                    "inverse-on-surface": "#eff1f3",
+                    "surface-dim": "#d8dadc",
+                    "on-primary-fixed": "#00164e",
+                    "primary-fixed": "#dce1ff",
+                    "secondary": "#795900",
+                    "surface-container": "#eceef0",
+                    "on-secondary-fixed-variant": "#5c4300",
+                    "surface-container-high": "#e6e8ea",
+                    "on-primary-fixed-variant": "#264191",
+                    "on-error-container": "#93000a",
+                    "on-tertiary-fixed-variant": "#773205",
+                    "on-secondary": "#ffffff",
+                    "outline": "#757682",
+                    "error-container": "#ffdad6",
+                    "tertiary": "#4b1c00",
+                    "on-surface-variant": "#444651",
+                    "secondary-fixed-dim": "#f9bd22",
+                    "error": "#ba1a1a",
+                    "on-tertiary-fixed": "#341100",
+                    "surface-container-low": "#f2f4f6",
+                    "on-surface": "#191c1e",
+                    "primary-fixed-dim": "#b6c4ff",
+                    "secondary-container": "#ffc329",
+                    "outline-variant": "#c5c5d3",
+                    "inverse-surface": "#2d3133",
+                    "surface-tint": "#4059aa",
+                    "on-error": "#ffffff",
+                    "on-secondary-container": "#6f5100",
+                    "on-primary-container": "#90a8ff",
+                    "on-primary": "#ffffff",
+                    "tertiary-container": "#6e2c00",
+                    "surface-container-lowest": "#ffffff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "unit": "8px",
+                    "control-group-margin": "32px",
+                    "gutter": "16px",
+                    "container-padding": "24px",
+                    "card-gap": "20px"
+            },
+            "fontFamily": {
+                    "body-md": ["Hanken Grotesk"],
+                    "label-md": ["Hanken Grotesk"],
+                    "body-lg": ["Hanken Grotesk"],
+                    "headline-lg": ["Hanken Grotesk"],
+                    "headline-md": ["Hanken Grotesk"],
+                    "display-score": ["Hanken Grotesk"],
+                    "headline-lg-mobile": ["Hanken Grotesk"],
+                    "label-caps": ["Hanken Grotesk"]
+            },
+            "fontSize": {
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "label-md": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "700"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "display-score": ["96px", {"lineHeight": "110%", "letterSpacing": "-0.04em", "fontWeight": "700"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                    "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .timer-glow {
+            text-shadow: 0 0 15px rgba(255, 195, 41, 0.4);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md min-h-screen pb-32">
+<!-- Top Navigation Shell -->
+<header class="flex justify-between items-center w-full px-container-padding h-20 bg-surface border-b border-outline-variant">
+<div class="flex items-center gap-4">
+<span class="font-headline-lg text-headline-lg font-bold text-primary uppercase tracking-wider">Championship Scoreboard</span>
+</div>
+<div class="hidden md:flex gap-8 items-center h-full">
+<nav class="flex items-center gap-6 h-full">
+<a class="text-primary font-bold border-b-2 border-primary h-full flex items-center px-2" href="#">Live Scoring</a>
+<a class="text-on-surface-variant font-medium hover:bg-surface-container-high transition-colors duration-200 px-2" href="#">Results</a>
+<a class="text-on-surface-variant font-medium hover:bg-surface-container-high transition-colors duration-200 px-2" href="#">Settings</a>
+</nav>
+<div class="flex items-center gap-3 ml-4">
+<span class="text-on-surface-variant font-label-caps text-label-caps uppercase">05:00</span>
+<button class="bg-primary-container text-on-primary-container px-6 py-2 font-label-caps text-label-caps rounded-xl hover:opacity-80 active:scale-95 transition-all">Start Timer</button>
+<div class="flex gap-2">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer">settings_remote</span>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer">wifi_tethering</span>
+</div>
+</div>
+</div>
+</header>
+<main class="max-w-[1440px] mx-auto px-container-padding pt-10">
+<!-- Tournament Header Titles -->
+<section class="text-center mb-10 space-y-2">
+<h1 class="font-headline-lg text-headline-lg text-primary tracking-tight" contenteditable="true">SELEKSI LIGA BINTANG JUARA</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant" contenteditable="true">Tingkat Gugus Kecamatan Tangerang • Selasa, 12 Mei 2025</p>
+</section>
+<!-- Timer Workspace Area -->
+<section class="bg-primary-container rounded-xl p-8 mb-12 shadow-md">
+<div class="flex flex-col md:flex-row items-center justify-between gap-8">
+<!-- Large Display Timer -->
+<div class="flex-1 flex flex-col items-center">
+<span class="font-label-caps text-label-caps text-on-primary-container uppercase tracking-widest mb-2 opacity-70">Remaining Time</span>
+<div class="flex items-center gap-4">
+<span class="font-display-score text-display-score text-secondary-container timer-glow leading-none">05:00</span>
+</div>
+</div>
+<!-- Timer Controls -->
+<div class="flex flex-col gap-6 w-full md:w-auto">
+<div class="flex gap-4">
+<button class="flex-1 md:w-40 bg-surface-container-lowest text-primary font-bold py-4 rounded-xl shadow-sm hover:bg-primary-fixed transition-colors">START</button>
+<button class="flex-1 md:w-40 border-2 border-surface-container-lowest text-surface-container-lowest font-bold py-4 rounded-xl hover:bg-on-primary-container/10 transition-colors">RESET</button>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="flex flex-col">
+<label class="font-label-caps text-label-caps text-on-primary-container opacity-70 mb-1">MINUTES</label>
+<input class="bg-primary/40 border-none text-white font-headline-md text-headline-md p-3 rounded-lg focus:ring-2 focus:ring-secondary text-center" type="number" value="5"/>
+</div>
+<div class="flex flex-col">
+<label class="font-label-caps text-label-caps text-on-primary-container opacity-70 mb-1">SECONDS</label>
+<input class="bg-primary/40 border-none text-white font-headline-md text-headline-md p-3 rounded-lg focus:ring-2 focus:ring-secondary text-center" type="number" value="0"/>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Participant Score Cards -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-card-gap mb-16">
+<!-- Rank 1: Gold -->
+<div class="bg-surface-container-lowest border-4 border-secondary-container rounded-xl overflow-hidden shadow-lg transition-transform hover:scale-[1.02]">
+<div class="bg-secondary-container px-4 py-2 flex justify-between items-center">
+<span class="font-label-caps text-label-caps text-on-secondary-container">RANK 1ST</span>
+<span class="material-symbols-outlined text-on-secondary-container" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+<div class="p-8 text-center flex flex-col items-center">
+<div class="w-24 h-24 rounded-full bg-surface-container flex items-center justify-center mb-6 border-2 border-secondary-container/20">
+<span class="material-symbols-outlined text-primary text-[48px]">person</span>
+</div>
+<span class="font-label-caps text-label-caps text-secondary-fixed-dim uppercase mb-1">Peserta I</span>
+<h3 class="font-headline-md text-headline-md text-primary mb-1">SDN SALOM</h3>
+<p class="font-label-md text-label-md text-on-surface-variant opacity-60 mb-8">No. Urut: 001</p>
+<div class="font-display-score text-display-score text-on-surface mb-8">0</div>
+<div class="flex gap-4 w-full">
+<button class="flex-1 bg-surface-container-high py-4 rounded-xl font-headline-md text-headline-md text-on-surface-variant hover:bg-surface-variant">- 1</button>
+<button class="flex-1 bg-primary text-white py-4 rounded-xl font-headline-md text-headline-md hover:opacity-90">+ 1</button>
+</div>
+</div>
+</div>
+<!-- Rank 2: Silver -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-sm transition-transform hover:scale-[1.02]">
+<div class="bg-surface-container-high px-4 py-2 flex justify-between items-center">
+<span class="font-label-caps text-label-caps text-on-surface-variant">RANK 2ND</span>
+</div>
+<div class="p-8 text-center flex flex-col items-center">
+<div class="w-24 h-24 rounded-full bg-surface-container flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-primary text-[48px]">person</span>
+</div>
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase mb-1">Peserta II</span>
+<h3 class="font-headline-md text-headline-md text-primary mb-1">SDN TANGERANG 4</h3>
+<p class="font-label-md text-label-md text-on-surface-variant opacity-60 mb-8">No. Urut: 002</p>
+<div class="font-display-score text-display-score text-on-surface mb-8">0</div>
+<div class="flex gap-4 w-full">
+<button class="flex-1 bg-surface-container-high py-4 rounded-xl font-headline-md text-headline-md text-on-surface-variant hover:bg-surface-variant">- 1</button>
+<button class="flex-1 bg-primary text-white py-4 rounded-xl font-headline-md text-headline-md hover:opacity-90">+ 1</button>
+</div>
+</div>
+</div>
+<!-- Rank 3: Bronze -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-sm transition-transform hover:scale-[1.02]">
+<div class="bg-surface-container-high px-4 py-2 flex justify-between items-center">
+<span class="font-label-caps text-label-caps text-on-surface-variant">RANK 3RD</span>
+</div>
+<div class="p-8 text-center flex flex-col items-center">
+<div class="w-24 h-24 rounded-full bg-surface-container flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-primary text-[48px]">person</span>
+</div>
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase mb-1">Peserta III</span>
+<h3 class="font-headline-md text-headline-md text-primary mb-1">SDN TANGERANG 2</h3>
+<p class="font-label-md text-label-md text-on-surface-variant opacity-60 mb-8">No. Urut: 003</p>
+<div class="font-display-score text-display-score text-on-surface mb-8">0</div>
+<div class="flex gap-4 w-full">
+<button class="flex-1 bg-surface-container-high py-4 rounded-xl font-headline-md text-headline-md text-on-surface-variant hover:bg-surface-variant">- 1</button>
+<button class="flex-1 bg-primary text-white py-4 rounded-xl font-headline-md text-headline-md hover:opacity-90">+ 1</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Admin Management Controls (Bento Layout) -->
+<section class="bg-inverse-surface text-on-primary-fixed p-10 rounded-2xl shadow-xl">
+<div class="flex items-center gap-3 mb-8">
+<span class="material-symbols-outlined text-secondary-container">manage_accounts</span>
+<h2 class="font-headline-md text-headline-md text-white">Kelola Peserta</h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+<!-- Edit Participant 1 -->
+<div class="bg-white/5 p-6 rounded-xl border border-white/10 space-y-4">
+<div class="flex justify-between items-center">
+<span class="font-label-caps text-label-caps text-secondary-container">PESERTA 001</span>
+<button class="text-error font-label-caps text-label-caps hover:underline">× Hapus</button>
+</div>
+<input class="w-full bg-white/10 border-none text-white rounded-lg p-3" type="text" value="Peserta I"/>
+<input class="w-full bg-white/10 border-none text-white font-bold rounded-lg p-3" type="text" value="SDN SALOM"/>
+<input class="w-20 bg-white/10 border-none text-white rounded-lg p-3 text-center" type="text" value="001"/>
+</div>
+<!-- Edit Participant 2 -->
+<div class="bg-white/5 p-6 rounded-xl border border-white/10 space-y-4">
+<div class="flex justify-between items-center">
+<span class="font-label-caps text-label-caps text-secondary-container">PESERTA 002</span>
+<button class="text-error font-label-caps text-label-caps hover:underline">× Hapus</button>
+</div>
+<input class="w-full bg-white/10 border-none text-white rounded-lg p-3" type="text" value="Peserta II"/>
+<input class="w-full bg-white/10 border-none text-white font-bold rounded-lg p-3" type="text" value="SDN TANGERANG 4"/>
+<input class="w-20 bg-white/10 border-none text-white rounded-lg p-3 text-center" type="text" value="002"/>
+</div>
+<!-- Edit Participant 3 -->
+<div class="bg-white/5 p-6 rounded-xl border border-white/10 space-y-4">
+<div class="flex justify-between items-center">
+<span class="font-label-caps text-label-caps text-secondary-container">PESERTA 003</span>
+<button class="text-error font-label-caps text-label-caps hover:underline">× Hapus</button>
+</div>
+<input class="w-full bg-white/10 border-none text-white rounded-lg p-3" type="text" value="Peserta III"/>
+<input class="w-full bg-white/10 border-none text-white font-bold rounded-lg p-3" type="text" value="SDN TANGERANG 2"/>
+<input class="w-20 bg-white/10 border-none text-white rounded-lg p-3 text-center" type="text" value="003"/>
+</div>
+</div>
+<div class="flex flex-wrap items-center gap-6 pt-6 border-t border-white/10">
+<div class="flex items-center gap-4 bg-white/5 px-6 py-4 rounded-xl">
+<span class="font-label-caps text-label-caps text-white/60">Langkah +/-</span>
+<input class="w-20 bg-white/10 border-none text-white font-bold text-center rounded-lg" type="number" value="1"/>
+</div>
+<button class="flex items-center gap-2 bg-white/10 text-white font-bold px-8 py-4 rounded-xl hover:bg-white/20 transition-all">
+<span class="material-symbols-outlined">add</span>
+                    Tambah Peserta
+                </button>
+<button class="flex items-center gap-2 border border-error text-error font-bold px-8 py-4 rounded-xl hover:bg-error/10 transition-all">
+<span class="material-symbols-outlined">restart_alt</span>
+                    Reset Semua Skor
+                </button>
+</div>
+</section>
+<!-- Database Connection Panel -->
+<section class="mt-12 p-8 bg-surface-container rounded-2xl border border-outline-variant">
+<div class="flex items-center justify-between mb-6">
+<div class="flex items-center gap-4">
+<h3 class="font-headline-md text-headline-md text-primary">Supabase Connection</h3>
+<div class="flex items-center gap-2 px-3 py-1 bg-error-container text-on-error-container rounded-full text-xs font-bold">
+<span class="w-2 h-2 rounded-full bg-error animate-pulse"></span>
+                        DISCONNECTED
+                    </div>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+<div class="md:col-span-2">
+<label class="block text-xs font-bold uppercase text-on-surface-variant mb-2">Supabase URL</label>
+<input class="w-full bg-white border-outline-variant rounded-lg p-3 text-sm focus:ring-primary" placeholder="https://your-project.supabase.co" type="text"/>
+</div>
+<div>
+<label class="block text-xs font-bold uppercase text-on-surface-variant mb-2">Anon Key</label>
+<input class="w-full bg-white border-outline-variant rounded-lg p-3 text-sm focus:ring-primary" placeholder="••••••••••••" type="password"/>
+</div>
+<div class="flex items-end">
+<button class="w-full bg-primary text-white font-bold py-3 rounded-lg hover:opacity-90">CONNECT LIVE SYNC</button>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation Shell (Mobile Responsive) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-2 gap-card-gap md:hidden bg-surface-container-low border-t border-outline-variant shadow-sm">
+<div class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-xl px-4 py-1 active:scale-95 duration-150 ease-in-out">
+<span class="material-symbols-outlined">tune</span>
+<span class="font-label-caps text-label-caps uppercase tracking-tight">Step Setting</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:text-primary transition-all">
+<span class="material-symbols-outlined">person_add</span>
+<span class="font-label-caps text-label-caps uppercase tracking-tight">Add Participant</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:text-primary transition-all">
+<span class="material-symbols-outlined">restart_alt</span>
+<span class="font-label-caps text-label-caps uppercase tracking-tight">Reset Scores</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:text-primary transition-all">
+<span class="material-symbols-outlined">delete_sweep</span>
+<span class="font-label-caps text-label-caps uppercase tracking-tight">Delete All</span>
+</div>
+</nav>
+<!-- Floating Branding Decoration (Arena Feel) -->
+<div class="fixed top-24 right-0 pointer-events-none opacity-10 -mr-20 hidden lg:block">
+<span class="font-display-score text-[200px] leading-none select-none">CHAMP</span>
+</div>
+</body></html>
