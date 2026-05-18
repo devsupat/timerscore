@@ -298,7 +298,7 @@ export default function LiveScorePage() {
                         </span>
                         <div className="flex flex-col">
                           <span className="font-space text-on-surface-variant font-medium">{parsed.name} (Sesi {parsed.session})</span>
-                          {isTied && <span className="text-[10px] text-amber-600 font-bold uppercase tracking-wider">Tied</span>}
+                          {isTied && <span className="text-[10px] text-amber-600 font-bold uppercase tracking-wider">⚠ Skor Sama</span>}
                         </div>
                       </div>
                       <div className="text-right">
@@ -313,9 +313,16 @@ export default function LiveScorePage() {
           )
         })()}
 
-        <p className="text-center text-xs text-on-surface-variant font-space pb-4">
-          Data diperbarui secara real-time &bull; <a href="/display" className="underline hover:text-primary-main">Display Screen</a>
-        </p>
+        <div className="text-center font-space pb-6 space-y-1.5">
+          <p className="text-xs text-on-surface-variant">
+            Data diperbarui secara real-time &bull; <a href="/display" className="underline hover:text-primary-main">Layar Utama</a>
+          </p>
+          <p className="text-xs text-on-surface-variant/70 flex items-center justify-center gap-1.5">
+            Dibuat dengan cinta
+            <span className="inline-block animate-bounce text-red-500 text-sm">❤️</span>
+            oleh Guru SDN Sukasari 4
+          </p>
+        </div>
       </div>
     </div>
   )
